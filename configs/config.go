@@ -1,6 +1,7 @@
 package configs
 
 import (
+	"demerzel-badges/internal/db"
 	"fmt"
 	"github.com/joho/godotenv"
 )
@@ -13,4 +14,5 @@ func Load() {
 	}
 
 	//	TODO Setup Database connection.
+	db.SetupDB()
 }
