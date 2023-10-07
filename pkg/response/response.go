@@ -10,9 +10,10 @@ func Success(c *gin.Context, code int, message string, data interface{}) {
 	})
 }
 
-func Error(c *gin.Context, code int, message string) {
+func Error(c *gin.Context, code int, message string, data interface{}) {
 	c.JSON(code, gin.H{
 		"status":  "error",
 		"message": message,
+		"errors":  data,
 	})
 }

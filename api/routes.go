@@ -20,5 +20,9 @@ func SetupRoutes() *gin.Engine {
 
 	r.GET("/health", handlers.HealthHandler)
 
+	// All other API routes should be mounted on this route group
+	apiRoutes := r.Group("/api")
+	apiRoutes.POST("/badges", handlers.CreateBadgeHandler)
+
 	return r
 }
