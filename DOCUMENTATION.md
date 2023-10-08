@@ -69,6 +69,7 @@ Read more at:  [The JSend Specification](https://github.com/omniti-labs/jsend)
          "message": "Team Demerzel Events API",
          "status": "success"
       }
+      ```
 
 ### Badges
 * **POST api/badges**
@@ -84,13 +85,14 @@ Read more at:  [The JSend Specification](https://github.com/omniti-labs/jsend)
          "min_score": 51,
          "max_score": 80
       }
+      ```
    * **Response**: 
    Status Code: 201  
    Body:
       ```Json
       {
          "status": "success",
-         "message": "Badge Created Successfully"
+         "message": "Badge Created Successfully",
          "data": {
             "id":123,
             "skill_id": 321,
@@ -114,6 +116,7 @@ Read more at:  [The JSend Specification](https://github.com/omniti-labs/jsend)
          "assessment_id": 321,
          "skill_id": 432
       }
+      ```
    * **Response**:
       Status Code: 201  
       Body:
@@ -130,4 +133,5 @@ Read more at:  [The JSend Specification](https://github.com/omniti-labs/jsend)
             "updated_at": "2023-09-20T18:28:42.523+01:00"
          }
       }
+      ```
 
