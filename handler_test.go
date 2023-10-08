@@ -273,7 +273,7 @@ func TestCleanupAssignBadge(t *testing.T) {
 
 func setupGetUserBadgeRouter() *gin.Engine {
 	router := gin.Default()
-	router.GET("/user/badges/:userId/skill/:skillId", handlers.GetUserBadgeHandler)
+	router.GET("api/user/badges/:userId/skill/:skillId", handlers.GetUserBadgeHandler)
 	return router
 }
 
@@ -291,7 +291,7 @@ func TestGetUserBadgeHandler_Success(t *testing.T) {
 	mockDB.On("Len", mock.Anything).Return(1)
 
 	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/user/badges/"+userId+"/skill/"+skillId, nil)
+	req, _ := http.NewRequest("GET", "api/user/badges/"+userId+"/skill/"+skillId, nil)
 
 	c, _ := gin.CreateTestContext(w)
 	c.Params = append(c.Params, gin.Param{Key: "userId", Value: userId}, gin.Param{Key: "skillId", Value: skillId})
@@ -320,7 +320,7 @@ func TestGetUserBadgeHandler_NotFound(t *testing.T) {
 	mockDB.On("Len", mock.Anything).Return(0)
 
 	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/user/badges/"+userId+"/skill/"+skillId, nil)
+	req, _ := http.NewRequest("GET", "api/user/badges/"+userId+"/skill/"+skillId, nil)
 
 	c, _ := gin.CreateTestContext(w)
 	c.Params = append(c.Params, gin.Param{Key: "userId", Value: userId}, gin.Param{Key: "skillId", Value: skillId})
