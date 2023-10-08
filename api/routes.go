@@ -24,6 +24,7 @@ func SetupRoutes() *gin.Engine {
 	apiRoutes := r.Group("/api")
 	apiRoutes.POST("/badges", handlers.CreateBadgeHandler)
 	apiRoutes.POST("/user/badges", handlers.AssignBadgeHandler)
+    apiRoutes.GET("/user/badges/:userId/skill/:skillId", handlers.GetUserBadgeHandler)
 	
 	return r
 }
