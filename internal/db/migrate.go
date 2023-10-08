@@ -1,9 +1,24 @@
 package db
 
-import "demerzel-badges/internal/models"
+import (
+	"demerzel-badges/internal/models"
+	"os"
+	"strings"
+)
 
 func Migrate() error {
-	err := DB.AutoMigrate(
+	environment := os.Getenv("ENV")
+	if strings.ToLower(environment) == "production" {
+		return DB.AutoMigrate(
+			&models.User{},
+			&models.Skill{},
+			&models.Assessment{},
+			&models.SkillBadge{},
+			&models.UserBadge{},
+		)
+	}
+
+	return DB.AutoMigrate(
 		&models.User{},
 		&models.Role{},
 		&models.UserRole{},
@@ -15,5 +30,5 @@ func Migrate() error {
 		&models.SkillBadge{},
 		&models.UserBadge{},
 	)
-	return err
+
 }
