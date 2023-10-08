@@ -87,3 +87,52 @@ func CreateBadgeHandler(c *gin.Context) {
 		"badge": newBadge,
 	})
 }
+
+func AssignBadgeHandler(c *gin.Context) {
+
+	type AssignBadgeReq struct {
+		UserID string `json:"user_id"`
+		BadgeID uint `json:"badge_id"`
+		AssessmentID uint `json:"assessment_id"`
+	}
+
+	var body AssignBadgeReq
+
+	if err := c.ShouldBindJSON(&body); err != nil {
+		response.Error(c, http.StatusBadRequest, fmt.Sprintf("Invalid request body: %s", err.Error()), map[string]interface{}{})
+		return
+	}
+
+	
+	isValidBadge := models.CheckIfBadgeIsValid(db.DB, body.BadgeID)
+
+	if !isValidBadge {
+		response.Error(c, http.StatusBadRequest, "This is not a valid badge", map[string]interface{}{
+			"error": "This badge does not exist or is not a valid badge",
+		})
+		return
+	}
+
+	isValidAssessment:= models.VerifyAssessment(db.DB, body.AssessmentID)
+
+	if !isValidAssessment {
+		response.Error(c, http.StatusBadRequest, "Invalid Assessment", map[string]interface{}{
+			"error": "This assessment is not valid or is under review",
+		})
+		return
+	}
+
+	userBadge, err:= models.AssignBadge(db.DB, body.UserID, body.BadgeID, body.AssessmentID)
+
+	if err != nil {
+		response.Error(c, http.StatusInternalServerError, "Unable to assign badge", map[string]interface{}{
+			"err": err.Error(),
+		})
+
+		return
+	}
+
+	response.Success(c, http.StatusCreated, "Badge Assigned Successfully", map[string]interface{}{
+		"badge": userBadge,
+	})
+}
