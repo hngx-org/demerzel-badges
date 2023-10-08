@@ -12,7 +12,9 @@ import (
 	"github.com/stretchr/testify/mock"
 
 	"demerzel-badges/internal/handlers"
+	"demerzel-badges/internal/db"
 	"demerzel-badges/internal/models"
+	"demerzel-badges/pkg/response"
 )
 
 type MockDatabase struct {
@@ -182,7 +184,158 @@ func TestCreateBadgeHandler_FindSkillByIdError(t *testing.T) {
 	assert.Contains(t, w.Body.String(), "No skill found matching provided ID")
 }
 
-func TestCleanup(t *testing.T) {
+
+func TestCleanupCreateBadge(t *testing.T) {
+	defer mockDB.AssertExpectations(t)
+	mockDB.Calls = nil
+}
+
+
+func setupAssignBadgeRouter() *gin.Engine {
+	router := gin.Default()
+	router.POST("/api/user/badges", handlers.AssignBadgeHandler)
+	return router
+}
+
+func TestAssignBadgeHandler_Success(t *testing.T) {
+	mockDB := new(MockDatabase)
+	db.DB = mockDB
+
+	router := setupAssignBadgeRouter()
+
+	testPayload := []byte(`{
+		"user_id": "sample_user_id",
+		"badge_id": 1,
+		"assessment_id": 1
+	}`)
+
+	mockDB.On("CheckIfBadgeIsValid", uint(1)).Return(true)
+	mockDB.On("VerifyAssessment", uint(1)).Return(true)
+	mockDB.On("AssignBadge", "sample_user_id", uint(1), uint(1)).Return(&models.UserBadge{}, nil)
+
+	req, err := http.NewRequest("POST", "/api/user/badges", bytes.NewBuffer(testPayload))
+	assert.NoError(t, err)
+
+	w := httptest.NewRecorder()
+
+	c, _ := gin.CreateTestContext(w)
+	c.Request = req
+
+	router.ServeHTTP(w, req)
+
+	handlers.AssignBadgeHandler(c)
+
+	assert.Equal(t, http.StatusCreated, w.Code)
+	assert.Contains(t, w.Body.String(), "Badge Assigned Successfully")
+	mockDB.AssertExpectations(t)
+}
+
+func TestAssignBadgeHandler_AssignBadgeError(t *testing.T) {
+	mockDB := new(MockDatabase)
+	db.DB = mockDB
+
+	router := setupAssignBadgeRouter()
+
+	testPayload := []byte(`{
+		"user_id": "sample_user_id",
+		"badge_id": 1,
+		"assessment_id": 1
+	}`)
+
+	mockDB.On("CheckIfBadgeIsValid", uint(1)).Return(true)
+	mockDB.On("VerifyAssessment", uint(1)).Return(true)
+	mockDB.On("AssignBadge", "sample_user_id", uint(1), uint(1)).Return(nil, errors.New("assign badge error"))
+
+	req, err := http.NewRequest("POST", "/api/user/badges", bytes.NewBuffer(testPayload))
+	assert.NoError(t, err)
+
+	w := httptest.NewRecorder()
+
+	c, _ := gin.CreateTestContext(w)
+	c.Request = req
+
+	router.ServeHTTP(w, req)
+
+	handlers.AssignBadgeHandler(c)
+
+	assert.Equal(t, http.StatusInternalServerError, w.Code)
+	assert.Contains(t, w.Body.String(), "Unable to assign badge")
+	mockDB.AssertExpectations(t)
+}
+
+
+func TestCleanupAssignBadge(t *testing.T) {
+	defer mockDB.AssertExpectations(t)
+	mockDB.Calls = nil
+}
+
+
+
+func setupGetUserBadgeRouter() *gin.Engine {
+	router := gin.Default()
+	router.GET("/user/badges/:userId/skill/:skillId", handlers.GetUserBadgeHandler)
+	return router
+}
+
+func TestGetUserBadgeHandler_Success(t *testing.T) {
+	mockDB := new(MockDatabase)
+	db.DB = mockDB
+
+	router := setupGetUserBadgeRouter()
+
+	userId := "sample_user_id"
+	skillId := "sample_skill_id"
+
+	mockDB.On("Where", "user_id=? AND skill_id=?", userId, skillId).Return(mockDB)
+	mockDB.On("Find", mock.Anything, "user_id=? AND skill_id=?", userId, skillId).Return(mockDB)
+	mockDB.On("Len", mock.Anything).Return(1)
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/user/badges/"+userId+"/skill/"+skillId, nil)
+
+	c, _ := gin.CreateTestContext(w)
+	c.Params = append(c.Params, gin.Param{Key: "userId", Value: userId}, gin.Param{Key: "skillId", Value: skillId})
+	c.Request = req
+
+	router.ServeHTTP(w, req)
+
+	handlers.GetUserBadgeHandler(c)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Contains(t, w.Body.String(), "User Badge Retrieved Successfully")
+	mockDB.AssertExpectations(t)
+}
+
+func TestGetUserBadgeHandler_NotFound(t *testing.T) {
+	mockDB := new(MockDatabase)
+	db.DB = mockDB
+
+	router := setupGetUserBadgeRouter()
+
+	userId := "non_existent_user_id"
+	skillId := "non_existent_skill_id"
+
+	mockDB.On("Where", "user_id=? AND skill_id=?", userId, skillId).Return(mockDB)
+	mockDB.On("Find", mock.Anything, "user_id=? AND skill_id=?", userId, skillId).Return(mockDB)
+	mockDB.On("Len", mock.Anything).Return(0)
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/user/badges/"+userId+"/skill/"+skillId, nil)
+
+	c, _ := gin.CreateTestContext(w)
+	c.Params = append(c.Params, gin.Param{Key: "userId", Value: userId}, gin.Param{Key: "skillId", Value: skillId})
+	c.Request = req
+
+	router.ServeHTTP(w, req)
+
+	handlers.GetUserBadgeHandler(c)
+
+	assert.Equal(t, http.StatusNotFound, w.Code)
+	assert.Contains(t, w.Body.String(), "User Badge not Found")
+	mockDB.AssertExpectations(t)
+}
+
+func TestCleanupGetUserBadge(t *testing.T) {
 	defer mockDB.AssertExpectations(t)
 	mockDB.Calls = nil
 }
