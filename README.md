@@ -19,6 +19,7 @@ PostgreSQL v >= 15.0
 `cp .env.example .env`
 ```bash
 PORT=3001
+ENV=local
 
 POSTGRES_USERNAME=
 POSTGRES_PASSWORD=
