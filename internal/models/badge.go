@@ -61,34 +61,14 @@ func BadgeExists(db *gorm.DB, skillID uint, badgeName Badge) bool {
 	return err == nil
 }
 
-func VerifyAssessment(db *gorm.DB, asssessmentID uint) bool{
-	var assessment_taken Assessment
-
-	err := db.Where(&Assessment{ ID: asssessmentID}).First(&assessment_taken).Error
-
-	if assessment_taken.Status == Pending || assessment_taken.Status == Failed {
-		return false
-	}
-
-	return err == nil
-}
-
-func AssignBadge(db *gorm.DB, userID string, badgeID uint, asssessmentID uint) (*UserBadge, error) {
-
-	var assessment_taken Assessment
-
-	err := db.Model(&Assessment{}).First(&assessment_taken, asssessmentID).Error
-
-	if err != nil {
-		return nil, err
-	}
-
+func AssignBadge(db *gorm.DB, userID string, badgeID uint, skillID uint) (*UserBadge, error) {
+	
 	newUserBadge:= UserBadge{
 		UserID: userID,
 		BadgeID: badgeID,
-		SkillID: assessment_taken.SkillID,
+		SkillID: skillID,
 	}
-	err = db.Create(&newUserBadge).Error
+	err := db.Create(&newUserBadge).Error
 
 	return &newUserBadge, err
 }
