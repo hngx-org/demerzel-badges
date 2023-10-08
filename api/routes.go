@@ -23,7 +23,7 @@ func SetupRoutes() *gin.Engine {
 	// All other API routes should be mounted on this route group
 	apiRoutes := r.Group("/api")
 	apiRoutes.POST("/badges", handlers.CreateBadgeHandler)
-    apiRoutes.GET("/api/user/badges/:userId/skill/:skillId", handlers.GetUserBadgeHandler)
+    apiRoutes.GET("/user/badges/:userId/skill/:skillId", handlers.GetUserBadgeHandler)
 
 	return r
 }
