@@ -20,7 +20,7 @@ func GetUserBadgeHandler(c *gin.Context) {
         Preload("User").
         Preload("Skill").
         Preload("Badge").
-        Preload("Assessment").
+        Preload("Assessment.Skill").
         Find(&userbadge)
 
     if len(userbadge) == 0 {
