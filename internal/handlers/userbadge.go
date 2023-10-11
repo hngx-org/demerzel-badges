@@ -15,15 +15,23 @@ func GetUserBadgeHandler(c *gin.Context) {
 
     var userbadge []models.UserBadge
 
-    db.DB.Where("user_id=? AND skill_id=?", userId, skillId).Find(&userbadge)
-    if len(userbadge) == 0{ 
-        response.Error(c,http.StatusNotFound,"User Badge not Found", map[string]interface{}{
+    //Corrected it to get the user, skill,badge and assessment that was empty
+    db.DB.Where("user_id=? AND skill_id=?", userId, skillId).
+        Preload("User").
+        Preload("Skill").
+        Preload("Badge").
+        Preload("Assessment.Skill").
+        Find(&userbadge)
+
+    if len(userbadge) == 0 {
+        response.Error(c, http.StatusNotFound, "User Badge not Found", map[string]interface{}{
             "data": userbadge,
         })
         return
     }
 
     response.Success(c, http.StatusOK, "User Badge Retrieved Successfully", map[string]interface{}{
-        "data":userbadge,
+        "data": userbadge,
     })
 }
+
