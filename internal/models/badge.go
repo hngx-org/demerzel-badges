@@ -19,8 +19,8 @@ type SkillBadge struct {
 	ID        uint      `json:"id" gorm:"primaryKey"`
 	SkillID   uint      `json:"skill_id"`
 	Name      Badge     `json:"name"`
-	MinScore  int       `json:"min_score"`
-	MaxScore  int       `json:"max_score"`
+	MinScore  float64   `json:"min_score"`
+	MaxScore  float64   `json:"max_score"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 	Skill     *Skill    `json:"skill,omitempty"`
