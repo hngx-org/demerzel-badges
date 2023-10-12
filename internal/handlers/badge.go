@@ -4,6 +4,7 @@ import (
 	"demerzel-badges/internal/db"
 	"demerzel-badges/internal/models"
 	"demerzel-badges/pkg/response"
+	"demerzel-badges/middleware"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -109,39 +110,36 @@ func GetUserBadgeByIDHandler(c *gin.Context) {
 }
 
 func AssignBadgeHandler(c *gin.Context) {
+    type AssignBadgeReq struct {
+        UserID       string `json:"user_id"`
+        BadgeID      uint   `json:"badge_id"`
+        AssessmentID uint   `json:"assessment_id"`
+    }
 
-	type AssignBadgeReq struct {
-		UserID string `json:"user_id"`
-		AssessmentID uint `json:"assessment_id"`
-	}
+    var body AssignBadgeReq
 
-	var body AssignBadgeReq
+    if err := c.ShouldBindJSON(&body); err != nil {
+        response.Error(c, http.StatusBadRequest, fmt.Sprintf("Invalid request body: %s", err.Error()), map[string]interface{}{})
+        return
+    }
 
-	if err := c.ShouldBindJSON(&body); err != nil {
-		response.Error(c, http.StatusBadRequest, fmt.Sprintf("Invalid request body: %s", err.Error()), map[string]interface{}{})
-		return
-	}
+    isValidAssessment := models.VerifyAssessment(db.DB, body.AssessmentID)
+    if !isValidAssessment {
+        response.Error(c, http.StatusBadRequest, "Invalid Assessment", map[string]interface{}{
+            "error": "This assessment is not valid or is under review",
+        })
+        return
+    }
 
-	isValidAssessment:= models.VerifyAssessment(db.DB, body.AssessmentID)
+    userBadge, err := models.AssignBadge(db.DB, body.UserID, body.BadgeID, body.AssessmentID)
+    if err != nil {
+        response.Error(c, http.StatusInternalServerError, "Unable to assign badge", map[string]interface{}{
+            "err": err.Error(),
+        })
+        return
+    }
 
-	if !isValidAssessment {
-		response.Error(c, http.StatusBadRequest, "Invalid Assessment", map[string]interface{}{
-			"error": "This assessment is not valid or is under review",
-		})
-		return
-	}
-
-	userBadge, err:= models.AssignBadge(db.DB, body.UserID, body.AssessmentID)
-
-	if err != nil {
-		response.Error(c, http.StatusInternalServerError, "Unable to assign badge", map[string]interface{}{
-			"err": err.Error(),
-		})
-
-		return
-	}
-
-	response.Success(c, http.StatusCreated, "Badge Assigned Successfully", map[string]interface{}{
-		"badge": userBadge,
-	})
+    response.Success(c, http.StatusCreated, "Badge Assigned Successfully", map[string]interface{}{
+        "badge": userBadge,
+    })
 }
