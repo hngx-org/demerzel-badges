@@ -137,10 +137,31 @@ func VerifyAssessment(db *gorm.DB, asssessmentID uint) bool {
 
 func GetUserBadgeByID(db *gorm.DB, badgeID uint) (*UserBadge, error) {
 	var badge UserBadge
-	result := db.Model(&UserBadge{}).Where("id = ?", badgeID).Preload("Skill").Preload("Assessment").Preload("Badge").First(&badge)
+	result := db.Model(&UserBadge{}).Where("id = ?", badgeID).
+		Preload("UserAssessment").
+		Preload("User").
+		Preload("UserAssessment.Assessment").
+		Preload("Badge").
+		Preload("Skill").First(&badge)
 	if result.Error != nil {
 		return nil, result.Error
 	}
 
 	return &badge, nil
+}
+
+func GetUserBadges(db *gorm.DB, userID string) ([]UserBadge, error) {
+	var badges []UserBadge
+
+	result := db.Model(&UserBadge{UserID: userID}).Preload("UserAssessment").
+		Preload("User").
+		Preload("UserAssessment.Assessment").
+		Preload("Badge").
+		Preload("Skill").Find(&badges)
+
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return badges, nil
 }
