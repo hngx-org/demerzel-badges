@@ -76,10 +76,6 @@ func AssignBadge(db *gorm.DB, userID string, asssessmentID uint) (*UserBadge, er
 		return nil, err
 	}
 
-	if assessment_taken.Score < assessment_taken.Assessment.PassScore {
-		return nil, fmt.Errorf("User score for assessment is lower than expected for badge")
-	}
-
 	err = db.Where("skill_id = ? AND ? BETWEEN min_score AND max_score", assessment_taken.Assessment.SkillID, assessment_taken.Score).First(&badge).Error
 
 	if err != nil {
