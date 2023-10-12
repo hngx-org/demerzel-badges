@@ -45,6 +45,20 @@ func (a Assessment) TableName() string {
 	return "assessment"
 }
 
+type UserAssessment struct {
+	ID              uint      `json:"id" gorm:"primaryKey"`
+	UserID         	string    `json:"user_id"`
+	AssessmentID    uint      `json:"assessment_id"`
+	Score       	uint      `json:"score"`
+	TimeSpent 		uint      `json:"time_spent"`
+	SubmissionDate  time.Time `json:"submisssion_date"`
+	Status          Status    `json:"status"`
+	CreatedAt       time.Time `json:"created_at"`
+	UpdatedAt       time.Time `json:"updated_at"`
+
+	Assessment Assessment
+}
+
 func FindSkillById(db *gorm.DB, skillID uint) (*Skill, error) {
 	var existingSkill Skill
 	err := db.Model(&Skill{}).First(&existingSkill, skillID).Error
