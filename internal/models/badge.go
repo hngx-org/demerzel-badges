@@ -31,17 +31,20 @@ func (sB SkillBadge) TableName() string {
 }
 
 type UserBadge struct {
-	ID               uint            `json:"id" gorm:"primaryKey"`
-	SkillID          uint            `json:"skill_id"`
-	UserID           string          `json:"user_id" gorm:"varchar(255)"`
-	BadgeID          uint            `json:"badge_id"`
-	UserAssessmentID uint            `json:"user_assessment_id"`
-	CreatedAt        time.Time       `json:"created_at"`
-	UpdatedAt        time.Time       `json:"updated_at"`
-	User             *User           `json:"user,omitempty"`
-	Skill            *Skill          `json:"skill,omitempty"`
-	Badge            *SkillBadge     `gorm:"foreignKey:BadgeID"`
-	UserAssessment   *UserAssessment `json:"UserAssessment,omitempty" gorm:"foreignKey:UserAssessmentID"`
+	ID               uint        `json:"id" gorm:"primaryKey"`
+	SkillID          uint        `json:"skill_id"`
+	UserID           string      `json:"user_id" gorm:"varchar(255)"`
+	BadgeID          uint        `json:"badge_id"`
+	AssessmentID     uint        `json:"assessment_id"`
+	UserAssessmentID uint        `json:"user_assessment_id"`
+	CreatedAt        time.Time   `json:"created_at"`
+	UpdatedAt        time.Time   `json:"updated_at"`
+	User             *User       `json:"user,omitempty"`
+	Skill            *Skill      `json:"skill,omitempty"`
+	Badge            *SkillBadge `gorm:"foreignKey:BadgeID"`
+	//UserAssessment   *UserAssessment `json:"UserAssessment,omitempty" gorm:"foreignKey:AssessmentID"`
+
+	Assessment *UserAssessment `json:"UserAssessment"`
 }
 
 func (uB UserBadge) TableName() string {
@@ -137,12 +140,13 @@ func VerifyAssessment(db *gorm.DB, asssessmentID uint) bool {
 
 func GetUserBadgeByID(db *gorm.DB, badgeID uint) (*UserBadge, error) {
 	var badge UserBadge
-	result := db.Model(&UserBadge{}).Where("id = ?", badgeID).
-		Preload("UserAssessment").
+	result := db.Model(&UserBadge{}).Where("id = ?", badgeID).Preload("Assessment").
+		//Preload("UserAssessment").
 		Preload("User").
-		Preload("UserAssessment.Assessment").
+		Preload("Assessment.Assessment").
 		Preload("Badge").
-		Preload("Skill").First(&badge)
+		Preload("Skill").
+		First(&badge)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -153,7 +157,7 @@ func GetUserBadgeByID(db *gorm.DB, badgeID uint) (*UserBadge, error) {
 func GetUserBadges(db *gorm.DB, userID string) ([]UserBadge, error) {
 	var badges []UserBadge
 
-	result := db.Model(&UserBadge{UserID: userID}).Preload("UserAssessment").
+	result := db.Model(&UserBadge{UserID: userID}).Preload("Assessment").
 		Preload("User").
 		Preload("UserAssessment.Assessment").
 		Preload("Badge").
