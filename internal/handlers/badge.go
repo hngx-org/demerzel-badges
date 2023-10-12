@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"strconv"
 	"strings"
 )
 
@@ -86,6 +87,25 @@ func CreateBadgeHandler(c *gin.Context) {
 	response.Success(c, http.StatusCreated, "Badge Created Successfully", map[string]interface{}{
 		"badge": newBadge,
 	})
+}
+
+func GetUserBadgeByIDHandler(c *gin.Context) {
+	badgeIDQuery := c.Param("badge_id")
+	badgeID, err := strconv.ParseInt(badgeIDQuery, 10, 64)
+	if err != nil {
+		response.Error(c, http.StatusBadRequest, "Invalid badgeID", map[string]interface{}{})
+		return
+	}
+	badge, err := models.GetUserBadgeByID(db.DB, uint(badgeID))
+	if err != nil {
+		response.Error(c, http.StatusNotFound, "Badge Not found", map[string]string{})
+		return
+	}
+
+	response.Success(c, http.StatusOK, "User Badge", map[string]interface{}{
+		"badge": badge,
+	})
+	return
 }
 
 func AssignBadgeHandler(c *gin.Context) {

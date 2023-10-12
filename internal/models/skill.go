@@ -34,8 +34,7 @@ type Assessment struct {
 	Status          Status    `json:"status"`
 	CreatedAt       time.Time `json:"created_at"`
 	UpdatedAt       time.Time `json:"updated_at"`
-
-	Skill Skill
+	Skill           *Skill    `json:"skill,omitempty"`
 }
 
 type UserAssessment struct {
