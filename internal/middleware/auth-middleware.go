@@ -37,6 +37,7 @@ func CanAssignBadge() gin.HandlerFunc {
 			ctx.Abort()
 			return
 		}
+		
 		json.Unmarshal(res.Body(), &authRes)
 
 		if res.StatusCode() != 200 {
@@ -44,7 +45,7 @@ func CanAssignBadge() gin.HandlerFunc {
 			ctx.Abort()
 			return
 		}
-
+		fmt.Println("It worked")
 		ctx.Next()
 	}
 }
