@@ -13,6 +13,7 @@ func Migrate() error {
 			&models.User{},
 			&models.Skill{},
 			&models.Assessment{},
+			&models.UserAssessment{},
 			&models.SkillBadge{},
 			&models.UserBadge{},
 		)
@@ -21,12 +22,12 @@ func Migrate() error {
 	return DB.AutoMigrate(
 		&models.User{},
 		&models.Role{},
-		&models.UserRole{},
 		&models.Permission{},
 		&models.UserPermission{},
 		&models.RolePermission{},
 		&models.Skill{},
 		&models.Assessment{},
+		&models.UserAssessment{},
 		&models.SkillBadge{},
 		&models.UserBadge{},
 	)
