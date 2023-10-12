@@ -89,6 +89,23 @@ func CreateBadgeHandler(c *gin.Context) {
 	})
 }
 
+func GetBadgesForUserHandler(c *gin.Context) {
+	userID := c.Param("user_id")
+
+	badges, err := models.GetUserBadges(db.DB, userID)
+
+	if err != nil {
+		response.Error(c, http.StatusInternalServerError, "Unable to list badges", map[string]string{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	response.Success(c, http.StatusOK, "User Badges", map[string]interface{}{
+		"badges": badges,
+	})
+}
+
 func GetUserBadgeByIDHandler(c *gin.Context) {
 	badgeIDQuery := c.Param("badge_id")
 	badgeID, err := strconv.ParseInt(badgeIDQuery, 10, 64)
@@ -111,8 +128,8 @@ func GetUserBadgeByIDHandler(c *gin.Context) {
 func AssignBadgeHandler(c *gin.Context) {
 
 	type AssignBadgeReq struct {
-		UserID string `json:"user_id"`
-		AssessmentID uint `json:"assessment_id"`
+		UserID       string `json:"user_id"`
+		AssessmentID uint   `json:"assessment_id"`
 	}
 
 	var body AssignBadgeReq
@@ -122,7 +139,7 @@ func AssignBadgeHandler(c *gin.Context) {
 		return
 	}
 
-	isValidAssessment:= models.VerifyAssessment(db.DB, body.AssessmentID)
+	isValidAssessment := models.VerifyAssessment(db.DB, body.AssessmentID)
 
 	if !isValidAssessment {
 		response.Error(c, http.StatusBadRequest, "Invalid Assessment", map[string]interface{}{
@@ -131,7 +148,7 @@ func AssignBadgeHandler(c *gin.Context) {
 		return
 	}
 
-	userBadge, err:= models.AssignBadge(db.DB, body.UserID, body.AssessmentID)
+	userBadge, err := models.AssignBadge(db.DB, body.UserID, body.AssessmentID)
 
 	if err != nil {
 		response.Error(c, http.StatusInternalServerError, "Unable to assign badge", map[string]interface{}{
