@@ -26,6 +26,10 @@ type SkillBadge struct {
 	Skill     *Skill    `json:"skill,omitempty"`
 }
 
+func (sB SkillBadge) TableName() string {
+	return "skill_badge"
+}
+
 type UserBadge struct {
 	ID               uint            `json:"id" gorm:"primaryKey"`
 	SkillID          uint            `json:"skill_id"`
@@ -38,6 +42,10 @@ type UserBadge struct {
 	Skill            *Skill          `json:"skill,omitempty"`
 	Badge            *SkillBadge     `gorm:"foreignKey:BadgeID"`
 	UserAssessment   *UserAssessment `json:"UserAssessment,omitempty" gorm:"foreignKey:UserAssessmentID"`
+}
+
+func (uB UserBadge) TableName() string {
+	return "user_badge"
 }
 
 func (b Badge) IsValid() bool {

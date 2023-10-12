@@ -22,7 +22,6 @@ func Migrate() error {
 	return DB.AutoMigrate(
 		&models.User{},
 		&models.Role{},
-		&models.UserRole{},
 		&models.Permission{},
 		&models.UserPermission{},
 		&models.RolePermission{},

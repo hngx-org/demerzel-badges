@@ -22,6 +22,10 @@ type Skill struct {
 	UpdatedAt     time.Time `json:"updated_at"`
 }
 
+func (s Skill) TableName() string {
+	return "skill"
+}
+
 type Assessment struct {
 	ID              uint      `json:"id" gorm:"primaryKey"`
 	SkillID         uint      `json:"skill_id"`
@@ -37,18 +41,26 @@ type Assessment struct {
 	Skill           *Skill    `json:"skill,omitempty"`
 }
 
+func (a Assessment) TableName() string {
+	return "assessment"
+}
+
 type UserAssessment struct {
-	ID              uint      `json:"id" gorm:"primaryKey"`
-	UserID         	string    `json:"user_id"`
-	AssessmentID    uint      `json:"assessment_id"`
-	Score       	uint      `json:"score"`
-	TimeSpent 		uint      `json:"time_spent"`
-	SubmissionDate  time.Time `json:"submisssion_date"`
-	Status          Status    `json:"status"`
-	CreatedAt       time.Time `json:"created_at"`
-	UpdatedAt       time.Time `json:"updated_at"`
+	ID             uint      `json:"id" gorm:"primaryKey"`
+	UserID         string    `json:"user_id"`
+	AssessmentID   uint      `json:"assessment_id"`
+	Score          uint      `json:"score"`
+	TimeSpent      uint      `json:"time_spent"`
+	SubmissionDate time.Time `json:"submisssion_date"`
+	Status         Status    `json:"status"`
+	CreatedAt      time.Time `json:"created_at"`
+	UpdatedAt      time.Time `json:"updated_at"`
 
 	Assessment Assessment
+}
+
+func (uA UserAssessment) TableName() string {
+	return "user_assessment"
 }
 
 func FindSkillById(db *gorm.DB, skillID uint) (*Skill, error) {
