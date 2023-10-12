@@ -13,10 +13,10 @@ import (
 
 func CreateBadgeHandler(c *gin.Context) {
 	type CreateBadgeRequest struct {
-		SkillID  uint   `json:"skill_id"`
-		Name     string `json:"name"`
-		MinScore int    `json:"min_score"`
-		MaxScore int    `json:"max_score"`
+		SkillID  uint    `json:"skill_id"`
+		Name     string  `json:"name"`
+		MinScore float64 `json:"min_score"`
+		MaxScore float64 `json:"max_score"`
 	}
 	var input CreateBadgeRequest
 
