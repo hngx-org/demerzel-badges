@@ -159,7 +159,7 @@ func GetUserBadges(db *gorm.DB, userID string) ([]UserBadge, error) {
 
 	result := db.Model(&UserBadge{UserID: userID}).Preload("Assessment").
 		Preload("User").
-		Preload("UserAssessment.Assessment").
+		Preload("Assessment.Assessment").
 		Preload("Badge").
 		Preload("Skill").Find(&badges)
 
