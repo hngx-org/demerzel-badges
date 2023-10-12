@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"strconv"
 	"strings"
 )
 
@@ -88,12 +89,31 @@ func CreateBadgeHandler(c *gin.Context) {
 	})
 }
 
+func GetUserBadgeByIDHandler(c *gin.Context) {
+	badgeIDQuery := c.Param("badge_id")
+	badgeID, err := strconv.ParseInt(badgeIDQuery, 10, 64)
+	if err != nil {
+		response.Error(c, http.StatusBadRequest, "Invalid badgeID", map[string]interface{}{})
+		return
+	}
+	badge, err := models.GetUserBadgeByID(db.DB, uint(badgeID))
+	if err != nil {
+		response.Error(c, http.StatusNotFound, "Badge Not found", map[string]string{})
+		return
+	}
+
+	response.Success(c, http.StatusOK, "User Badge", map[string]interface{}{
+		"badge": badge,
+	})
+	return
+}
+
 func AssignBadgeHandler(c *gin.Context) {
 
 	type AssignBadgeReq struct {
-		UserID string `json:"user_id"`
-		BadgeID uint `json:"badge_id"`
-		AssessmentID uint `json:"assessment_id"`
+		UserID       string `json:"user_id"`
+		BadgeID      uint   `json:"badge_id"`
+		AssessmentID uint   `json:"assessment_id"`
 	}
 
 	var body AssignBadgeReq
@@ -103,7 +123,6 @@ func AssignBadgeHandler(c *gin.Context) {
 		return
 	}
 
-	
 	isValidBadge := models.CheckIfBadgeIsValid(db.DB, body.BadgeID)
 
 	if !isValidBadge {
@@ -113,7 +132,7 @@ func AssignBadgeHandler(c *gin.Context) {
 		return
 	}
 
-	isValidAssessment:= models.VerifyAssessment(db.DB, body.AssessmentID)
+	isValidAssessment := models.VerifyAssessment(db.DB, body.AssessmentID)
 
 	if !isValidAssessment {
 		response.Error(c, http.StatusBadRequest, "Invalid Assessment", map[string]interface{}{
@@ -122,7 +141,7 @@ func AssignBadgeHandler(c *gin.Context) {
 		return
 	}
 
-	userBadge, err:= models.AssignBadge(db.DB, body.UserID, body.BadgeID, body.AssessmentID)
+	userBadge, err := models.AssignBadge(db.DB, body.UserID, body.BadgeID, body.AssessmentID)
 
 	if err != nil {
 		response.Error(c, http.StatusInternalServerError, "Unable to assign badge", map[string]interface{}{
