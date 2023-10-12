@@ -13,6 +13,7 @@ func Migrate() error {
 			&models.User{},
 			&models.Skill{},
 			&models.Assessment{},
+			&models.UserAssessment{},
 			&models.SkillBadge{},
 			&models.UserBadge{},
 		)
@@ -27,6 +28,7 @@ func Migrate() error {
 		&models.RolePermission{},
 		&models.Skill{},
 		&models.Assessment{},
+		&models.UserAssessment{},
 		&models.SkillBadge{},
 		&models.UserBadge{},
 	)

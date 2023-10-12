@@ -1,8 +1,10 @@
 package models
 
 import (
-	"gorm.io/gorm"
+	"fmt"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 type Badge string
@@ -25,17 +27,17 @@ type SkillBadge struct {
 }
 
 type UserBadge struct {
-	ID           uint        `json:"id" gorm:"primaryKey"`
-	SkillID      uint        `json:"skill_id"`
-	UserID       string      `json:"user_id" gorm:"varchar(255)"`
-	BadgeID      uint        `json:"badge_id"`
-	AssessmentID uint        `json:"assessment_id"`
-	CreatedAt    time.Time   `json:"created_at"`
-	UpdatedAt    time.Time   `json:"updated_at"`
-	User         *User       `json:"user,omitempty"`
-	Skill        *Skill      `json:"skill,omitempty"`
-	Badge        *SkillBadge `json:"badge,omitempty" gorm:"foreignKey:BadgeID"`
-	Assessment   *Assessment `json:"assessment,omitempty" gorm:"foreignKey:AssessmentID"`
+	ID               uint            `json:"id" gorm:"primaryKey"`
+	SkillID          uint            `json:"skill_id"`
+	UserID           string          `json:"user_id" gorm:"varchar(255)"`
+	BadgeID          uint            `json:"badge_id"`
+	UserAssessmentID uint            `json:"user_assessment_id"`
+	CreatedAt        time.Time       `json:"created_at"`
+	UpdatedAt        time.Time       `json:"updated_at"`
+	User             *User           `json:"user,omitempty"`
+	Skill            *Skill          `json:"skill,omitempty"`
+	Badge            *SkillBadge     `gorm:"foreignKey:BadgeID"`
+	UserAssessment   *UserAssessment `json:"UserAssessment,omitempty" gorm:"foreignKey:UserAssessmentID"`
 }
 
 func (b Badge) IsValid() bool {
@@ -63,23 +65,45 @@ func BadgeExists(db *gorm.DB, skillID uint, badgeName Badge) bool {
 	return err == nil
 }
 
-func AssignBadge(db *gorm.DB, userID string, badgeID uint, asssessmentID uint) (*UserBadge, error) {
+func AssignBadge(db *gorm.DB, userID string, asssessmentID uint) (*UserBadge, error) {
 
-	var assessment_taken Assessment
+	var assessment_taken UserAssessment
+	var badge SkillBadge
 
-	err := db.Model(&Assessment{}).First(&assessment_taken, asssessmentID).Error
+	err := db.Preload("Assessment").First(&assessment_taken, asssessmentID).Error
 
 	if err != nil {
 		return nil, err
 	}
 
+	err = db.Where("skill_id = ? AND ? BETWEEN min_score AND max_score", assessment_taken.Assessment.SkillID, assessment_taken.Score).First(&badge).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	if badge.ID == 0 {
+		return nil, fmt.Errorf("Badge for this assessmnt does not exist")
+	}
+
 	newUserBadge := UserBadge{
-		UserID:       userID,
-		BadgeID:      badgeID,
-		SkillID:      assessment_taken.SkillID,
-		AssessmentID: asssessmentID,
+		UserID:           userID,
+		BadgeID:          badge.ID,
+		SkillID:          badge.SkillID,
+		UserAssessmentID: asssessmentID,
 	}
 	err = db.Create(&newUserBadge).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = db.Preload("UserAssessment").
+		Preload("User").
+		Preload("UserAssessment.Assessment").
+		Preload("Badge").
+		Preload("Skill").
+		Where(&UserBadge{ID: newUserBadge.ID}).First(&newUserBadge).Error
 
 	return &newUserBadge, err
 }
@@ -92,9 +116,9 @@ func CheckIfBadgeIsValid(db *gorm.DB, badgeID uint) bool {
 }
 
 func VerifyAssessment(db *gorm.DB, asssessmentID uint) bool {
-	var assessment_taken Assessment
+	var assessment_taken UserAssessment
 
-	err := db.Where(&Assessment{ID: asssessmentID}).First(&assessment_taken).Error
+	err := db.Where(&UserAssessment{ID: asssessmentID}).First(&assessment_taken).Error
 
 	if assessment_taken.Status == Pending || assessment_taken.Status == Failed {
 		return false
