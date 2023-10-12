@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strings"
+	"fmt"
 )
 
 const (
@@ -69,21 +70,24 @@ func validateAndExtractToken(tokenString string) (string, error) {
 	})
 
 	if err != nil {
-		return "", err
-	}
-
-	if !token.Valid {
-		return "", jwt.ErrSignatureInvalid
+		switch err {
+		case jwt.ErrSignatureInvalid:
+			return "", fmt.Errorf("Invalid token signature")
+		case jwt.ErrExpired:
+			return "", fmt.Errorf("Token has expired")
+		default:
+			return "", fmt.Errorf("Invalid or expired token")
+		}
 	}
 
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
-		return "", jwt.ErrSignatureInvalid
+		return "", fmt.Errorf("Invalid token claims")
 	}
 
 	userID, ok := claims["sub"].(string)
 	if !ok {
-		return "", jwt.ErrSignatureInvalid
+		return "", fmt.Errorf("Invalid user ID in token")
 	}
 
 	return userID, nil
