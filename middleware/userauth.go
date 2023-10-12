@@ -1,31 +1,90 @@
 package middleware
 
 import (
-	"net/http"
-	"github.com/gin-gonic/gin"
 	"demerzel-badges/pkg/response"
+	"github.com/dgrijalva/jwt-go"
+	"github.com/gin-gonic/gin"
+	"net/http"
+	"strings"
 )
 
-func UserAuthMiddleware() gin.HandlerFunc {
+const (
+	jwtSecretKey = "jwt_secret"  // Replace with actual key
+	UserIDKey = "userID"
+)
+
+var (
+	signingMethod = jwt.SigningMethodHS256 // Replace with actual signing method
+)
+
+func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		loggedInUserID, exists := c.Get("loggedInUserID")
-		if !exists {
+		authHeader := c.GetHeader("Authorization")
+
+		if authHeader == "" {
 			response.Error(c, http.StatusUnauthorized, "Unauthorized access", map[string]interface{}{
-				"error": "Authentication required",
+				"error": "Missing Authorization header",
 			})
 			c.Abort()
 			return
 		}
 
-		requestedUserID := c.Param("user_id") 
-		if loggedInUserID != requestedUserID {
+		authParts := strings.Split(authHeader, " ")
+		if len(authParts) != 2 || authParts[0] != "Bearer" {
 			response.Error(c, http.StatusUnauthorized, "Unauthorized access", map[string]interface{}{
-				"error": "You are not authorized to perform this action",
+				"error": "Invalid Authorization header format",
 			})
 			c.Abort()
 			return
 		}
+
+		token := authParts[1]
+
+		userID, err := validateAndExtractToken(token)
+		if err != nil {
+			response.Error(c, http.StatusUnauthorized, "Unauthorized access", map[string]interface{}{
+				"error": "Invalid or expired token",
+			})
+			c.Abort()
+			return
+		}
+
+		c.Set(UserIDKey, userID)
 
 		c.Next()
 	}
+}
+
+// validateAndExtractToken validates the JWT token and extracts user id
+func validateAndExtractToken(tokenString string) (string, error) {
+	
+	secret := []byte(jwtSecretKey)
+
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		if token.Method != signingMethod {
+			return nil, jwt.ErrSignatureInvalid
+		}
+
+		return secret, nil
+	})
+
+	if err != nil {
+		return "", err
+	}
+
+	if !token.Valid {
+		return "", jwt.ErrSignatureInvalid
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return "", jwt.ErrSignatureInvalid
+	}
+
+	userID, ok := claims["sub"].(string)
+	if !ok {
+		return "", jwt.ErrSignatureInvalid
+	}
+
+	return userID, nil
 }
