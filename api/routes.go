@@ -2,6 +2,7 @@ package api
 
 import (
 	"demerzel-badges/internal/handlers"
+	"demerzel-badges/internal/middlewares"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"os"
@@ -24,7 +25,7 @@ func SetupRoutes() *gin.Engine {
 	apiRoutes := r.Group("/api")
 	apiRoutes.POST("/badges", handlers.CreateBadgeHandler)
 	apiRoutes.POST("/user/badges", handlers.AssignBadgeHandler)
-    	apiRoutes.GET("/user/badges/:userId/skill/:skillId", handlers.GetUserBadgeHandler)
+    	apiRoutes.GET("/user/badges/:userId/skill/:skillId", middleware.CanViewBadge(), handlers.GetUserBadgeHandler)
 	
 	return r
 }
