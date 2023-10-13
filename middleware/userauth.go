@@ -2,20 +2,14 @@ package middleware
 
 import (
 	"demerzel-badges/pkg/response"
-	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
-	"net/http"
-	"strings"
+	"github.com/go-resty/resty/v2"
 	"fmt"
 )
 
 const (
-	jwtSecretKey = "jwt_secret"  // Replace with actual key
 	UserIDKey = "userID"
-)
-
-var (
-	signingMethod = jwt.SigningMethodHS256 // Replace with actual signing method
+	authServiceURL = "https://auth.akuya.tech/api/authorize"
 )
 
 func AuthMiddleware() gin.HandlerFunc {
@@ -41,7 +35,7 @@ func AuthMiddleware() gin.HandlerFunc {
 
 		token := authParts[1]
 
-		userID, err := validateAndExtractToken(token)
+		userID, err := getUserID(token)
 		if err != nil {
 			response.Error(c, http.StatusUnauthorized, "Unauthorized access", map[string]interface{}{
 				"error": "Invalid or expired token",
@@ -49,46 +43,46 @@ func AuthMiddleware() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-
 		c.Set(UserIDKey, userID)
 
 		c.Next()
 	}
 }
 
-// validateAndExtractToken validates the JWT token and extracts user id
-func validateAndExtractToken(tokenString string) (string, error) {
+// getUserID sends an API request to the auth service and extracts the user ID
+func getUserID(token string) (string, error) {
 	
-	secret := []byte(jwtSecretKey)
+	client := resty.New()
 
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		if token.Method != signingMethod {
-			return nil, jwt.ErrSignatureInvalid
-		}
+	requestBody := map[string]string{"token": token}
 
-		return secret, nil
-	})
+	resp, err := client.R().
+		SetHeader("Content-Type", "application/json").
+		SetBody(requestBody).
+		Post(authServiceURL)
 
 	if err != nil {
-		switch err {
-		case jwt.ErrSignatureInvalid:
-			return "", fmt.Errorf("Invalid token signature")
-		case jwt.ErrExpired:
-			return "", fmt.Errorf("Token has expired")
-		default:
-			return "", fmt.Errorf("Invalid or expired token")
-		}
+		return "", err
 	}
 
-	claims, ok := token.Claims.(jwt.MapClaims)
-	if !ok {
-		return "", fmt.Errorf("Invalid token claims")
+	if resp.StatusCode() != http.StatusOK {
+		return "", fmt.Errorf("Authorization request failed with status code: %d", resp.StatusCode())
 	}
 
-	userID, ok := claims["sub"].(string)
-	if !ok {
-		return "", fmt.Errorf("Invalid user ID in token")
+	var response struct {
+		Authorized bool `json:"authorized"`
+		User       struct {
+			ID string `json:"id"`
+		} `json:"user"`
 	}
 
-	return userID, nil
+	if err := json.Unmarshal(resp.Body(), &response); err != nil {
+		return "", err
+	}
+
+	if response.Authorized {
+		return response.User.ID, nil
+	}
+
+	return "", fmt.Errorf("User is not authorized")
 }
