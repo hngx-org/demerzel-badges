@@ -122,34 +122,34 @@ func BadgeExists(db *gorm.DB, skillID uint, badgeName Badge) bool {
 	return err == nil
 }
 
-func AssignBadge(db *gorm.DB, userID string, asssessmentID uint) (*UserBadge, error) {
+func AssignBadge(db *gorm.DB, userID string, assessmentID uint) (*UserBadge, error) {
 
-	var assessment_taken UserAssessment
+	var assessmentTaken UserAssessment
 	var badge SkillBadge
 
-	err := db.Preload("Assessment").First(&assessment_taken, asssessmentID).Error
+	err := db.Preload("Assessment").First(&assessmentTaken, assessmentID).Error
 
 	if err != nil {
 		return nil, err
 	}
 
-	fmt.Println(assessment_taken.AssessmentID)
-	err = db.Where("skill_id = ? AND ? BETWEEN min_score AND max_score", assessment_taken.Assessment.SkillID, assessment_taken.Score).First(&badge).Error
+	fmt.Println(assessmentTaken.AssessmentID)
+	err = db.Where("skill_id = ? AND ? BETWEEN min_score AND max_score", assessmentTaken.Assessment.SkillID, assessmentTaken.Score).First(&badge).Error
 
 	if err != nil {
 		return nil, err
 	}
 
 	if badge.ID == 0 {
-		return nil, fmt.Errorf("Badge for this assessmnt does not exist")
+		return nil, fmt.Errorf("badge for this assessmnt does not exist")
 	}
 
 	newUserBadge := UserBadge{
 		UserID:           userID,
 		BadgeID:          badge.ID,
 		SkillID:          badge.SkillID,
-		AssessmentID: assessment_taken.AssessmentID,
-		UserAssessmentID: asssessmentID,
+		AssessmentID:     assessmentID,
+		UserAssessmentID: assessmentID,
 	}
 	err = db.Create(&newUserBadge).Error
 
