@@ -1,7 +1,9 @@
 package models
 
 import (
+	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"gorm.io/gorm"
@@ -10,10 +12,26 @@ import (
 type Badge string
 
 const (
-	Beginner     Badge = "beginner"
-	Intermediate Badge = "intermediate"
-	Expert       Badge = "expert"
+	Beginner     Badge = "Beginner"
+	Intermediate Badge = "Intermediate"
+	Expert       Badge = "Expert"
 )
+
+func GetValidBadgeName(badgeName string) (Badge, error) {
+	if strings.ToLower(string(Beginner)) == strings.ToLower(badgeName) {
+		return Beginner, nil
+	}
+
+	if strings.ToLower(string(Intermediate)) == strings.ToLower(badgeName) {
+		return Intermediate, nil
+	}
+
+	if strings.ToLower(string(Expert)) == strings.ToLower(badgeName) {
+		return Expert, nil
+	}
+
+	return "", errors.New("invalid badge Provided")
+}
 
 type SkillBadge struct {
 	ID        uint      `json:"id" gorm:"primaryKey"`
@@ -154,13 +172,29 @@ func GetUserBadgeByID(db *gorm.DB, badgeID uint) (*UserBadge, error) {
 	return &badge, nil
 }
 
-func GetUserBadges(db *gorm.DB, userID string) ([]UserBadge, error) {
+func GetUserBadges(db *gorm.DB, userID string, badgeName string) ([]UserBadge, error) {
 	var badges []UserBadge
 
-	result := db.Model(&UserBadge{UserID: userID}).Preload("Assessment").
+	query := db
+	if badgeName != "" {
+		validBadgeName, err := GetValidBadgeName(badgeName)
+		if err != nil {
+			return nil, err
+		}
+		query = query.Raw("SELECT user_badge.id, user_badge.user_id, user_badge.badge_id, user_badge.assessment_id "+
+			"FROM user_badge, skill_badge WHERE skill_badge.id = user_badge.badge_id AND skill_badge.name = ? AND user_badge.user_id = ?",
+			validBadgeName, userID,
+		)
+
+	} else {
+		query = query.Model(&UserBadge{}).Where(&UserBadge{UserID: userID})
+	}
+
+	result := query.Preload("Assessment").
 		Preload("User").
-		Preload("Assessment.Assessment").
 		Preload("Badge").
+		Preload("Badge.Skill").
+		Preload("Assessment.Assessment").
 		Preload("Skill").Find(&badges)
 
 	if result.Error != nil {

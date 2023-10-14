@@ -91,8 +91,9 @@ func CreateBadgeHandler(c *gin.Context) {
 
 func GetBadgesForUserHandler(c *gin.Context) {
 	userID := c.Param("user_id")
+	badgeName := c.Query("badge")
 
-	badges, err := models.GetUserBadges(db.DB, userID)
+	badges, err := models.GetUserBadges(db.DB, userID, badgeName)
 
 	if err != nil {
 		response.Error(c, http.StatusInternalServerError, "Unable to list badges", map[string]string{
