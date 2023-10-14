@@ -1,6 +1,7 @@
 package models
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -42,6 +43,32 @@ type SkillBadge struct {
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 	Skill     *Skill    `json:"skill,omitempty"`
+}
+
+type SkillBadgeJson struct {
+	ID        uint      `json:"id" gorm:"primaryKey"`
+	SkillID   uint      `json:"skill_id"`
+	Name      string    `json:"name"`
+	MinScore  float64   `json:"min_score"`
+	MaxScore  float64   `json:"max_score"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+	Skill     *Skill    `json:"skill,omitempty"`
+}
+
+func (sB SkillBadge) MarshalJSON() ([]byte, error) {
+	jsonData := SkillBadgeJson{
+		ID:        sB.ID,
+		SkillID:   sB.SkillID,
+		Name:      strings.ToLower(string(sB.Name)),
+		MinScore:  sB.MinScore,
+		MaxScore:  sB.MaxScore,
+		CreatedAt: sB.CreatedAt,
+		UpdatedAt: sB.UpdatedAt,
+		Skill:     nil,
+	}
+
+	return json.Marshal(jsonData)
 }
 
 func (sB SkillBadge) TableName() string {
