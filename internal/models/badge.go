@@ -42,7 +42,8 @@ type SkillBadge struct {
 	MaxScore  float64   `json:"max_score"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
-	Skill     *Skill    `json:"skill,omitempty"`
+
+	Skill *Skill `json:"Skill,omitempty"`
 }
 
 type SkillBadgeJson struct {
@@ -53,7 +54,7 @@ type SkillBadgeJson struct {
 	MaxScore  float64   `json:"max_score"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
-	Skill     *Skill    `json:"skill,omitempty"`
+	Skill     *Skill    `json:"Skill,omitempty"`
 }
 
 func (sB SkillBadge) MarshalJSON() ([]byte, error) {
@@ -65,7 +66,7 @@ func (sB SkillBadge) MarshalJSON() ([]byte, error) {
 		MaxScore:  sB.MaxScore,
 		CreatedAt: sB.CreatedAt,
 		UpdatedAt: sB.UpdatedAt,
-		Skill:     nil,
+		Skill:     sB.Skill,
 	}
 
 	return json.Marshal(jsonData)
@@ -186,11 +187,10 @@ func VerifyAssessment(db *gorm.DB, asssessmentID uint) bool {
 func GetUserBadgeByID(db *gorm.DB, badgeID uint) (*UserBadge, error) {
 	var badge UserBadge
 	result := db.Model(&UserBadge{}).Where("id = ?", badgeID).Preload("Assessment").
-		//Preload("UserAssessment").
 		Preload("User").
-		Preload("Assessment.Assessment").
 		Preload("Badge").
-		Preload("Skill").
+		Preload("Assessment.Assessment").
+		Preload("Badge.Skill").
 		First(&badge)
 	if result.Error != nil {
 		return nil, result.Error
@@ -222,7 +222,7 @@ func GetUserBadges(db *gorm.DB, userID string, badgeName string) ([]UserBadge, e
 		Preload("Badge").
 		Preload("Badge.Skill").
 		Preload("Assessment.Assessment").
-		Preload("Skill").Find(&badges)
+		Find(&badges)
 
 	if result.Error != nil {
 		return nil, result.Error
