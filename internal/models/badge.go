@@ -132,6 +132,7 @@ func AssignBadge(db *gorm.DB, userID string, asssessmentID uint) (*UserBadge, er
 		return nil, err
 	}
 
+	fmt.Println(assessment_taken.AssessmentID)
 	err = db.Where("skill_id = ? AND ? BETWEEN min_score AND max_score", assessment_taken.Assessment.SkillID, assessment_taken.Score).First(&badge).Error
 
 	if err != nil {
@@ -146,6 +147,7 @@ func AssignBadge(db *gorm.DB, userID string, asssessmentID uint) (*UserBadge, er
 		UserID:           userID,
 		BadgeID:          badge.ID,
 		SkillID:          badge.SkillID,
+		AssessmentID: assessment_taken.AssessmentID,
 		UserAssessmentID: asssessmentID,
 	}
 	err = db.Create(&newUserBadge).Error
@@ -154,9 +156,9 @@ func AssignBadge(db *gorm.DB, userID string, asssessmentID uint) (*UserBadge, er
 		return nil, err
 	}
 
-	err = db.Preload("UserAssessment").
+	err = db.Preload("Assessment").
 		Preload("User").
-		Preload("UserAssessment.Assessment").
+		Preload("Assessment.Assessment").
 		Preload("Badge").
 		Preload("Skill").
 		Where(&UserBadge{ID: newUserBadge.ID}).First(&newUserBadge).Error
