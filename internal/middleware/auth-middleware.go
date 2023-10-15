@@ -29,7 +29,7 @@ func CanAssignBadge() gin.HandlerFunc {
 		client := resty.New().R()
 		client.SetHeader("Content-Type", "application/json")
 		client.SetBody(&body)
-		res, err := client.Post("https://auth.akuya.tech/api/authorize")
+		res, err := client.Post("https://staging.zuri.team/api/auth/authorize")
 
 		if err != nil {
 			fmt.Println(err)
