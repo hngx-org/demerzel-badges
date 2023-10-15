@@ -211,7 +211,7 @@ func AssignBadgeHandler(c *gin.Context) {
 }
 func createBadgeSharingInfo(badgeID uint, badgeName string) map[string]interface{} {
 	badgeDescription := "I earned this awesome badge on Zuri portfolio."
-	badgeURL := fmt.Sprintf("/api/badges/%d", badgeID)
+	badgeURL := fmt.Sprintf("/badges/%d", badgeID)
 	
 	facebookURL := fmt.Sprintf("https://www.facebook.com/sharer.php?u=%s", badgeURL)
 	twitterURL := fmt.Sprintf("https://twitter.com/intent/tweet?text=%s&url=%s", badgeName, badgeURL)
