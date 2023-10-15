@@ -29,7 +29,7 @@ func CanViewBadge() gin.HandlerFunc {
 		client := resty.New().R()
 		client.SetHeader("Content-Type", "application/json")
 		client.SetBody(&body)
-		resp, err := client.Post("https://auth.akuya.tech/api/authorize")
+		resp, err := client.Post("https://staging.zuri.team/api/auth/api/authorize")
 
 		if err != nil {
 			response.Error(c, http.StatusInternalServerError, "Auth service Error", err.Error())
