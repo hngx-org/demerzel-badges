@@ -15,7 +15,6 @@ const (
 	authServiceURL = "https://auth.akuya.tech/api/authorize"
 )
 
-// ExternalService represents an external service for user authentication.
 type ExternalService interface {
     GetUserID(token string) (string, error)
 }
