@@ -125,7 +125,15 @@ func GetUserBadgeByIDHandler(c *gin.Context) {
 	response.Success(c, http.StatusOK, "User Badge", map[string]interface{}{
 		"badge": badge,
 	})
-	return
+	
+	badgeName := badge.Name
+	sharingInfo := createBadgeSharingInfo(uint(badgeID), badgeName)
+	response := map[string]interface{}{
+		"badge":        badge,
+		"sharing_urls": sharingInfo,
+	}
+	
+	c.JSON(http.StatusOK, response)
 }
 
 func AssignBadgeHandler(c *gin.Context) {
@@ -200,4 +208,22 @@ func AssignBadgeHandler(c *gin.Context) {
 	response.Success(c, http.StatusCreated, "Badge Assigned Successfully", map[string]interface{}{
 		"badge": userBadge,
 	})
+}
+func createBadgeSharingInfo(badgeID uint, badgeName string) map[string]interface{} {
+	badgeDescription := "I earned this awesome badge on Zuri portfolio."
+	badgeURL := fmt.Sprintf("/api/badges/%d", badgeID)
+	
+	facebookURL := fmt.Sprintf("https://www.facebook.com/sharer.php?u=%s", badgeURL)
+	twitterURL := fmt.Sprintf("https://twitter.com/intent/tweet?text=%s&url=%s", badgeName, badgeURL)
+	linkedinURL := fmt.Sprintf("https://www.linkedin.com/sharing/share-offsite/?url=%s&title=%s&summary=%s", badgeURL, badgeName, badgeDescription)
+	
+	sharingInfo := map[string]interface{}{
+        "sharing_urls": map[string]string{
+            "facebook_share_url": facebookURL,
+            "twitter_share_url":  twitterURL,
+            "linkedin_share_url": linkedinURL,
+        },
+    }
+
+    return sharingInfo
 }
