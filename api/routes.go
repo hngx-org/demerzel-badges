@@ -24,9 +24,25 @@ func SetupRoutes() *gin.Engine {
 
 	// All other API routes should be mounted on this route group
 	apiRoutes := r.Group("/api")
+
 	apiRoutes.POST("/badges", handlers.CreateBadgeHandler)
-	apiRoutes.POST("/user/badges", middleware.CanAssignBadge() , handlers.AssignBadgeHandler)
-  	apiRoutes.GET("/user/badges/:userId/skill/:skillId", handlers.GetUserBadgeHandler)
+
+	apiRoutes.POST("/user/badges", func(c *gin.Context) {
+		userID, _ := c.Get(middleware.UserIDKey)
+
+		targetUserID := c.PostForm("user_id")
+
+		if userID != targetUserID {
+			response.Error(c, http.StatusForbidden, "Forbidden", map[string]interface{}{
+				"error": "You can only assign badges to yourself",
+			})
+			c.Abort()
+			return
+		}
+		handlers.AssignBadgeHandler(c)
+	})  	
+	
+	apiRoutes.GET("/user/badges/:userId/skill/:skillId", handlers.GetUserBadgeHandler)
 	apiRoutes.GET("/badges/:badge_id", handlers.GetUserBadgeByIDHandler)
 
 	return r
