@@ -15,10 +15,10 @@ import (
 
 func CreateBadgeHandler(c *gin.Context) {
 	type CreateBadgeRequest struct {
-		SkillID  uint   `json:"skill_id"`
-		Name     string `json:"name"`
-		MinScore int    `json:"min_score"`
-		MaxScore int    `json:"max_score"`
+		SkillID  uint    `json:"skill_id"`
+		Name     string  `json:"name"`
+		MinScore float64 `json:"min_score"`
+		MaxScore float64 `json:"max_score"`
 	}
 	var input CreateBadgeRequest
 
@@ -93,8 +93,9 @@ func CreateBadgeHandler(c *gin.Context) {
 
 func GetBadgesForUserHandler(c *gin.Context) {
 	userID := c.Param("user_id")
+	badgeName := c.Query("badge")
 
-	badges, err := models.GetUserBadges(db.DB, userID)
+	badges, err := models.GetUserBadges(db.DB, userID, badgeName)
 
 	if err != nil {
 		response.Error(c, http.StatusInternalServerError, "Unable to list badges", map[string]string{
@@ -181,7 +182,7 @@ func AssignBadgeHandler(c *gin.Context) {
 	client.SetHeader("Content-Type", "application/json")
 	client.SetBody(&emailReq)
 	fmt.Println(emailReq)
-	res, err := client.Post("https://team-titan.mrprotocoll.me/api/v1/assessment/badge")
+	res, err := client.Post("https://team-titan.mrprotocoll.me/api/messaging/assessment/badge")
 
 
 	if err != nil {

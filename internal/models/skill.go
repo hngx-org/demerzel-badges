@@ -49,7 +49,7 @@ type UserAssessment struct {
 	ID             uint      `json:"id" gorm:"primaryKey"`
 	UserID         string    `json:"user_id"`
 	AssessmentID   uint      `json:"assessment_id"`
-	Score          uint      `json:"score"`
+	Score          float64   `json:"score"`
 	TimeSpent      uint      `json:"time_spent"`
 	SubmissionDate time.Time `json:"submisssion_date"`
 	Status         Status    `json:"status"`
