@@ -81,16 +81,14 @@ type UserBadge struct {
 	SkillID          uint        `json:"skill_id"`
 	UserID           string      `json:"user_id" gorm:"varchar(255)"`
 	BadgeID          uint        `json:"badge_id"`
-	AssessmentID     uint        `json:"assessment_id"`
 	UserAssessmentID uint        `json:"user_assessment_id"`
 	CreatedAt        time.Time   `json:"created_at"`
 	UpdatedAt        time.Time   `json:"updated_at"`
 	User             *User       `json:"user,omitempty"`
 	Skill            *Skill      `json:"skill,omitempty"`
 	Badge            *SkillBadge `gorm:"foreignKey:BadgeID"`
-	//UserAssessment   *UserAssessment `json:"UserAssessment,omitempty" gorm:"foreignKey:AssessmentID"`
 
-	Assessment *UserAssessment `json:"UserAssessment"`
+	UserAssessment *UserAssessment `json:"UserAssessment"`
 }
 
 func (uB UserBadge) TableName() string {
@@ -148,7 +146,6 @@ func AssignBadge(db *gorm.DB, userID string, assessmentID uint) (*UserBadge, err
 		UserID:           userID,
 		BadgeID:          badge.ID,
 		SkillID:          badge.SkillID,
-		AssessmentID:     assessmentID,
 		UserAssessmentID: assessmentID,
 	}
 	err = db.Create(&newUserBadge).Error
@@ -188,10 +185,10 @@ func VerifyAssessment(db *gorm.DB, asssessmentID uint) bool {
 
 func GetUserBadgeByID(db *gorm.DB, badgeID uint) (*UserBadge, error) {
 	var badge UserBadge
-	result := db.Model(&UserBadge{}).Where("id = ?", badgeID).Preload("Assessment").
+	result := db.Model(&UserBadge{}).Where("id = ?", badgeID).Preload("UserAssessment").
 		Preload("User").
 		Preload("Badge").
-		Preload("Assessment.Assessment").
+		Preload("UserAssessment.Assessment").
 		Preload("Badge.Skill").
 		First(&badge)
 	if result.Error != nil {
@@ -210,7 +207,7 @@ func GetUserBadges(db *gorm.DB, userID string, badgeName string) ([]UserBadge, e
 		if err != nil {
 			return nil, err
 		}
-		query = query.Raw("SELECT user_badge.id, user_badge.user_id, user_badge.badge_id, user_badge.assessment_id "+
+		query = query.Raw("SELECT user_badge.id, user_badge.user_id, user_badge.badge_id, user_badge.user_assessment_id "+
 			"FROM user_badge, skill_badge WHERE skill_badge.id = user_badge.badge_id AND skill_badge.name = ? AND user_badge.user_id = ?",
 			validBadgeName, userID,
 		)
@@ -219,11 +216,11 @@ func GetUserBadges(db *gorm.DB, userID string, badgeName string) ([]UserBadge, e
 		query = query.Model(&UserBadge{}).Where(&UserBadge{UserID: userID})
 	}
 
-	result := query.Preload("Assessment").
+	result := query.Preload("UserAssessment").
 		Preload("User").
 		Preload("Badge").
 		Preload("Badge.Skill").
-		Preload("Assessment.Assessment").
+		Preload("UserAssessment.Assessment").
 		Find(&badges)
 
 	if result.Error != nil {
