@@ -2,7 +2,7 @@ package api
 
 import (
 	"demerzel-badges/internal/handlers"
-	"demerzel-badges/middleware"
+	"demerzel-badges/internal/middleware"
 	"os"
 
 	"github.com/gin-contrib/cors"
@@ -26,21 +26,20 @@ func SetupRoutes() *gin.Engine {
 	apiRoutes := r.Group("/api")
 
 	apiRoutes.POST("/badges", handlers.CreateBadgeHandler)
+	apiRoutes.POST("/user/badges", middleware.CanAssignBadge() , handlers.AssignBadgeHandler)
 
-	apiRoutes.POST("/user/badges", func(c *gin.Context) {
-		userID, _ := c.Get(middleware.UserIDKey)
-
-		targetUserID := c.PostForm("user_id")
-
-		if userID != targetUserID {
-			response.Error(c, http.StatusForbidden, "Forbidden", map[string]interface{}{
-				"error": "You can only assign badges to yourself",
-			})
-			c.Abort()
-			return
-		}
-		handlers.AssignBadgeHandler(c)
-	})  	
+//	 apiRoutes.POST("/user/badges", func(c *gin.Context) {
+//		userID, _ := c.Get(middleware.UserIDKey)
+//		targetUserID := c.PostForm("user_id")
+//		if userID != targetUserID {
+//			response.Error(c, http.StatusForbidden, "Forbidden", map[string]interface{}{
+//				"message": "You can only assign badges to yourself",
+//			})
+//			c.Abort()
+//			return
+//		}
+//		handlers.AssignBadgeHandler(c)
+//	})  	
 	
 	apiRoutes.GET("/user/badges/:userId/skill/:skillId", handlers.GetUserBadgeHandler)
 	apiRoutes.GET("/badges/:badge_id", handlers.GetUserBadgeByIDHandler)
