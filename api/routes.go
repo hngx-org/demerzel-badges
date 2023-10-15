@@ -2,6 +2,7 @@ package api
 
 import (
 	"demerzel-badges/internal/handlers"
+	"demerzel-badges/internal/middleware"
 	"os"
 
 	"github.com/gin-contrib/cors"
