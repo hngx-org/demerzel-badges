@@ -144,6 +144,7 @@ func AssignBadgeHandler(c *gin.Context) {
 	}
 
 	var body AssignBadgeReq
+	
 
 	if err := c.ShouldBindJSON(&body); err != nil {
 		response.Error(c, http.StatusBadRequest, fmt.Sprintf("Invalid request body: %s", err.Error()), map[string]interface{}{})
@@ -190,7 +191,6 @@ func AssignBadgeHandler(c *gin.Context) {
 	}
 
 	if res.StatusCode() != 200 {
-		fmt.Println(res.StatusCode())
 		response.Success(c, http.StatusCreated, "Badge Assigned Successfully, Email not Sent", map[string]interface{}{
 			"badge": userBadge,
 		})
