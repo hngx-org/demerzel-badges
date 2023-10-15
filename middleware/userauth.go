@@ -1,10 +1,13 @@
 package middleware
 
 import (
-	"demerzel-badges/pkg/response"
+	"net/http"
+	"strings"
+	"encoding/json"
+	"fmt"
+
 	"github.com/gin-gonic/gin"
 	"github.com/go-resty/resty/v2"
-	"fmt"
 )
 
 const (
@@ -12,46 +15,50 @@ const (
 	authServiceURL = "https://auth.akuya.tech/api/authorize"
 )
 
-func AuthMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		authHeader := c.GetHeader("Authorization")
+// ExternalService represents an external service for user authentication.
+type ExternalService interface {
+    GetUserID(token string) (string, error)
+}
 
-		if authHeader == "" {
-			response.Error(c, http.StatusUnauthorized, "Unauthorized access", map[string]interface{}{
-				"error": "Missing Authorization header",
-			})
-			c.Abort()
-			return
-		}
+func AuthMiddleware(externalService ExternalService) gin.HandlerFunc {
+    return func(c *gin.Context) {
+        authHeader := c.GetHeader("Authorization")
 
-		authParts := strings.Split(authHeader, " ")
-		if len(authParts) != 2 || authParts[0] != "Bearer" {
-			response.Error(c, http.StatusUnauthorized, "Unauthorized access", map[string]interface{}{
-				"error": "Invalid Authorization header format",
-			})
-			c.Abort()
-			return
-		}
+        if authHeader == "" {
+            c.JSON(http.StatusUnauthorized, gin.H{
+                "message":"Missing Authorization header",
+            })
+            c.Abort()
+            return
+        }
 
-		token := authParts[1]
+        authParts := strings.Split(authHeader, " ")
+        if len(authParts) != 2 || authParts[0] != "Bearer" {
+            c.JSON(http.StatusUnauthorized, gin.H{
+                "error": "Invalid Authorization header format",
+            })
+            c.Abort()
+            return
+        }
 
-		userID, err := getUserID(token)
-		if err != nil {
-			response.Error(c, http.StatusUnauthorized, "Unauthorized access", map[string]interface{}{
-				"error": "Invalid or expired token",
-			})
-			c.Abort()
-			return
-		}
-		c.Set(UserIDKey, userID)
+        token := authParts[1]
 
-		c.Next()
-	}
+        userID, err := externalService.GetUserID(token)
+        if err != nil {
+            c.JSON(http.StatusUnauthorized, gin.H{
+                "message":"Invalid or expired token",
+            })
+            c.Abort()
+            return
+        }
+        c.Set(UserIDKey, userID)
+
+        c.Next()
+    }
 }
 
 // getUserID sends an API request to the auth service and extracts the user ID
 func getUserID(token string) (string, error) {
-	
 	client := resty.New()
 
 	requestBody := map[string]string{"token": token}
