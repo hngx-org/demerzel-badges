@@ -60,6 +60,11 @@ func CanViewBadge() gin.HandlerFunc {
 			return
 		}
 
+		user, _ := authResp["user"].(map[string]interface{})
+
+		id, _ := user["id"].(string)
+
+		c.Set("user_id", id)
 		c.Next()
 	}
 }

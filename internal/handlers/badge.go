@@ -92,8 +92,10 @@ func CreateBadgeHandler(c *gin.Context) {
 }
 
 func GetBadgesForUserHandler(c *gin.Context) {
-	userID := c.Param("user_id")
+	
 	badgeName := c.Query("badge")
+
+	userID := c.GetString("user_id")
 
 	badges, err := models.GetUserBadges(db.DB, userID, badgeName)
 
@@ -181,7 +183,6 @@ func AssignBadgeHandler(c *gin.Context) {
 	client := resty.New().R()
 	client.SetHeader("Content-Type", "application/json")
 	client.SetBody(&emailReq)
-	fmt.Println(emailReq)
 	res, err := client.Post("https://team-titan.mrprotocoll.me/api/messaging/assessment/badge")
 
 
