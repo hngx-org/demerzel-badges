@@ -1,9 +1,11 @@
 package middleware
 
 import (
+	"context"
 	"demerzel-badges/pkg/response"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -23,7 +25,25 @@ func CanAssignBadge() gin.HandlerFunc {
 		var authRes authResponse
 		token := ctx.GetHeader("Authorization")
 
+
+// Check Auth header was supplied
+		if token == "" || len(strings.Split(token, " ")) != 2 {
+			response.Error(ctx, http.StatusUnauthorized, "Invalid Authorization Header", map[string]interface{}{
+				"Auth": "Authorization header is missing or improperly formatted",
+			})
+			ctx.Abort()
+			return
+		}
+
 		body.Token = strings.Split(token, " ")[1]
+		if body.Token == "" {
+			response.Error(ctx, http.StatusUnauthorized, "Specify a bearer token", map[string]interface{}{
+				"Auth": "Authorization header is missing or improperly formatted",
+			})
+			ctx.Abort()
+			return
+		}
+
 		body.Permission = "badge.update.own"
 
 		client := resty.New().R()
@@ -46,6 +66,10 @@ func CanAssignBadge() gin.HandlerFunc {
 			return
 		}
 		fmt.Println("It worked")
+		user, _ := authRes["user"].(map[string]interface{})
+
+		id, _ := user["id"].(string)
+		ctx.Request = ctx.Request.WithContext(context.WithValue(ctx.Request.Context(), "user_id",  id))
 		ctx.Next()
 	}
 }

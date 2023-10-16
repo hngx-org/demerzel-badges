@@ -92,8 +92,11 @@ func CreateBadgeHandler(c *gin.Context) {
 }
 
 func GetBadgesForUserHandler(c *gin.Context) {
-	userID := c.Param("user_id")
+	
 	badgeName := c.Query("badge")
+
+	userID := c.Request.Context().Value("user_id").(string)
+	fmt.Println(userID)
 
 	badges, err := models.GetUserBadges(db.DB, userID, badgeName)
 

@@ -10,8 +10,9 @@ import (
 )
 
 func GetUserBadgeHandler(c *gin.Context) {
-	userId := c.Param("userId")
 	skillId := c.Param("skillId")
+	userId := c.Request.Context().Value("user_id").(string)
+
 
 	var userbadge []models.UserBadge
 
