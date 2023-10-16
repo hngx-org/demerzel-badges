@@ -1,19 +1,12 @@
 name: Badges Deployment
 
-# on:
-#   push:
-#     branches:
-#       - main
-#   pull_request:
-#     branches:
-#       - main
 on:
   push:
     branches:
-      - cicd
+      - main
   # pull_request:
   #   branches:
-  #     - cicd
+  #     - main
 
 jobs:
   build:
