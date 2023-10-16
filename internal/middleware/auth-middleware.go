@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"context"
 	"demerzel-badges/pkg/response"
 	"encoding/json"
 	"fmt"
@@ -52,7 +51,6 @@ func CanAssignBadge() gin.HandlerFunc {
 		res, err := client.Post("https://staging.zuri.team/api/auth/api/authorize")
 
 		if err != nil {
-			fmt.Println(err)
 			response.Error(ctx, 500, "Something went wrong", err)
 			ctx.Abort()
 			return
@@ -69,7 +67,8 @@ func CanAssignBadge() gin.HandlerFunc {
 		user, _ := authRes["user"].(map[string]interface{})
 
 		id, _ := user["id"].(string)
-		ctx.Request = ctx.Request.WithContext(context.WithValue(ctx.Request.Context(), "user_id",  id))
+
+		ctx.Set("user_id", id)
 		ctx.Next()
 	}
 }

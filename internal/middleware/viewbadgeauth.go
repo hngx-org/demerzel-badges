@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"context"
 	"demerzel-badges/pkg/response"
 	"encoding/json"
 	"net/http"
@@ -64,8 +63,8 @@ func CanViewBadge() gin.HandlerFunc {
 		user, _ := authResp["user"].(map[string]interface{})
 
 		id, _ := user["id"].(string)
-		c.Request = c.Request.WithContext(context.WithValue(c.Request.Context(), "user_id",  id))
 
+		c.Set("user_id", id)
 		c.Next()
 	}
 }

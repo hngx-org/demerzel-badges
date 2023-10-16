@@ -11,7 +11,7 @@ import (
 
 func GetUserBadgeHandler(c *gin.Context) {
 	skillId := c.Param("skillId")
-	userId := c.Request.Context().Value("user_id").(string)
+	userId := c.GetString("user_id")
 
 
 	var userbadge []models.UserBadge
