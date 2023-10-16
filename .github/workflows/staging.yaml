@@ -47,7 +47,6 @@ jobs:
           script: |
             cd /home/devops/team_demerzel/backend
             ls
-            git fetch origin
             git pull origin main
             go build main.go
             sudo systemctl restart demerzel_backend
