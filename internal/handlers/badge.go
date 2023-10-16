@@ -91,19 +91,25 @@ func CreateBadgeHandler(c *gin.Context) {
 	})
 }
 
-func GetBadgesForUserHandler(c *gin.Context) {
-	userID := c.Param("user_id")
-	badgeName := c.Query("badge")
+func ListBadgesForSkillHandler(c *gin.Context) {
+    skillIDParam := c.Param("skill_id")
+    
+    skillID, err := strconv.ParseUint(skillIDParam, 10, 64)
+    if err != nil {
 
-	badges, err := models.GetUserBadges(db.DB, userID, badgeName)
+        c.JSON(http.StatusBadRequest, gin.H{
+            "error": "Invalid skill_id",
+        })
+        return
+    }
 
-	if err != nil {
-		response.Error(c, http.StatusInternalServerError, "Unable to list badges", map[string]string{
-			"error": err.Error(),
-		})
-		return
-	}
-
+    badges, err := models.GetBadgesForSkill(db.DB, uint(skillID))
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{
+            "error": "Failed to retrieve badges",
+        })
+        return
+    }
 	response.Success(c, http.StatusOK, "User Badges", map[string]interface{}{
 		"badges": badges,
 	})
