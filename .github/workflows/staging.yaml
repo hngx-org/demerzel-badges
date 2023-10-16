@@ -28,7 +28,7 @@ jobs:
           go-version: 1.19
 
       - name: build app
-        run: go build main.go
+        run: /usr/local/go/bin/go build main.go
 
   deploy:
     runs-on: ubuntu-latest
