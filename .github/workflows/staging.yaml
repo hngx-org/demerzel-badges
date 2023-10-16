@@ -37,7 +37,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Deploy to server
+      - name: pull changes and build
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.DEPLOY_HOST_STAGING }}
@@ -46,8 +46,16 @@ jobs:
           port: ${{ secrets.PORT }}
           script: |
             cd /home/devops/team_demerzel/backend
-            ls
             git fetch origin
             git pull origin main
             go build main.go
-            sudo systemctl restart demerzel_backend
+
+      - name: restart server
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.DEPLOY_HOST_STAGING }}
+          username: ${{ secrets.USERNAME2 }}
+          password: ${{ secrets.PASSWORD2 }}
+          port: ${{ secrets.PORT }}
+          script: |
+            systemctl restart demerzel_backend
