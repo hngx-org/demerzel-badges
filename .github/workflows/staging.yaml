@@ -53,7 +53,7 @@ jobs:
             cd /home/devops/team_demerzel/backend
             git fetch origin
             git pull origin main
-            go build main.go
+            /usr/local/go/bin/go build main.go
 
       - name: restart server
         uses: appleboy/ssh-action@v1.0.0
