@@ -23,6 +23,15 @@ func CanViewBadge() gin.HandlerFunc {
 		var authResp authResponse
 		token := c.GetHeader("Authorization")
 
+		// Check Auth header was supplied
+		if token == "" || len(strings.Split(token, " ")) != 2 {
+			response.Error(c, http.StatusUnauthorized, "Invalid Authorization Header", map[string]interface{}{
+				"Auth": "Authorization header is missing or improperly formatted",
+			})
+			c.Abort()
+			return
+		}
+
 		body.Token = strings.Split(token, " ")[1]
 		body.Permission = "badge.read"
 
