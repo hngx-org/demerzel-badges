@@ -33,6 +33,13 @@ func CanViewBadge() gin.HandlerFunc {
 		}
 
 		body.Token = strings.Split(token, " ")[1]
+		if body.Token == "" {
+			response.Error(c, http.StatusUnauthorized, "Specify a bearer token", map[string]interface{}{
+				"Auth": "Authorization header is missing or improperly formatted",
+			})
+			c.Abort()
+			return
+		}
 		body.Permission = "badge.read"
 
 		client := resty.New().R()
