@@ -20,10 +20,10 @@ func SetupRoutes() *gin.Engine {
 	r.Use(gin.Recovery())
 	r.Use(cors.Default())
 
-	r.GET("/health", handlers.HealthHandler)
+	r.GET("/api/badges/health", handlers.HealthHandler)
 
 	// All other API routes should be mounted on this route group
-	apiRoutes := r.Group("/api")
+	apiRoutes := r.Group("/api/badges")
 	apiRoutes.POST("/badges", handlers.CreateBadgeHandler)
 	apiRoutes.GET("/user/badges", middleware.CanViewBadge(), handlers.GetBadgesForUserHandler)
 	apiRoutes.POST("/user/badges", middleware.CanAssignBadge(), handlers.AssignBadgeHandler)
