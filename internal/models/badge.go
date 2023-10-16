@@ -229,3 +229,18 @@ func GetUserBadges(db *gorm.DB, userID string, badgeName string) ([]UserBadge, e
 
 	return badges, nil
 }
+
+func GetBadgesForSkill(db *gorm.DB, skillID uint) ([]SkillBadge, error) {
+	var badges []SkillBadge
+
+	result := db.Preload("Badge.Skill").
+		Find(&badges)
+
+	db.Model(&SkillBadge{}).Where("skill_id = ?", skillID).Find(&badges)
+
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return badges, nil
+}
