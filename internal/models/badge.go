@@ -78,14 +78,12 @@ func (sB SkillBadge) TableName() string {
 
 type UserBadge struct {
 	ID               uint        `json:"id" gorm:"primaryKey"`
-	SkillID          uint        `json:"skill_id"`
 	UserID           string      `json:"user_id" gorm:"varchar(255)"`
 	BadgeID          uint        `json:"badge_id"`
 	UserAssessmentID uint        `json:"user_assessment_id"`
 	CreatedAt        time.Time   `json:"created_at"`
 	UpdatedAt        time.Time   `json:"updated_at"`
 	User             *User       `json:"user,omitempty"`
-	Skill            *Skill      `json:"skill,omitempty"`
 	Badge            *SkillBadge `gorm:"foreignKey:BadgeID"`
 
 	UserAssessment *UserAssessment `json:"UserAssessment"`
@@ -144,7 +142,6 @@ func AssignBadge(db *gorm.DB, userID string, assessmentID uint) (*UserBadge, err
 	newUserBadge := UserBadge{
 		UserID:           userID,
 		BadgeID:          badge.ID,
-		SkillID:          badge.SkillID,
 		UserAssessmentID: assessmentID,
 	}
 	err = db.Create(&newUserBadge).Error
@@ -157,7 +154,6 @@ func AssignBadge(db *gorm.DB, userID string, assessmentID uint) (*UserBadge, err
 		Preload("User").
 		Preload("UserAssessment.Assessment").
 		Preload("Badge").
-		Preload("Skill").
 		Where(&UserBadge{ID: newUserBadge.ID}).First(&newUserBadge).Error
 
 	return &newUserBadge, err
