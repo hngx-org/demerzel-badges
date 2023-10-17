@@ -5,12 +5,10 @@ import (
 	"demerzel-badges/internal/models"
 	"demerzel-badges/pkg/response"
 	"fmt"
-	"net/http"
-	"strconv"
-	"strings"
-
 	"github.com/gin-gonic/gin"
 	"github.com/go-resty/resty/v2"
+	"net/http"
+	"strconv"
 )
 
 func CreateBadgeHandler(c *gin.Context) {
@@ -53,7 +51,7 @@ func CreateBadgeHandler(c *gin.Context) {
 		return
 	}
 
-	badgeName := models.Badge(strings.ToTitle(input.Name))
+	badgeName, _ := models.GetValidBadgeName(input.Name)
 	if !badgeName.IsValid() {
 		response.Error(c, http.StatusUnprocessableEntity, "invalid input", map[string]interface{}{
 			"name": "invalid badge name",
