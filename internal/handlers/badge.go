@@ -92,6 +92,9 @@ func CreateBadgeHandler(c *gin.Context) {
 func GetBadgesForUserHandler(c *gin.Context) {
 
 	badgeName := c.Query("badge")
+	if badgeName == "" {
+		badgeName = c.Query("badges")
+	}
 
 	userID := c.GetString("user_id")
 
