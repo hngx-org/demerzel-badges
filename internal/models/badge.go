@@ -81,8 +81,8 @@ type UserBadge struct {
 	UserID           string      `json:"user_id" gorm:"varchar(255)"`
 	BadgeID          uint        `json:"badge_id"`
 	UserAssessmentID uint        `json:"user_assessment_id"`
-	CreatedAt        time.Time   `json:"created_at" gorm:"createdAt"`
-	UpdatedAt        time.Time   `json:"updated_at" gorm:"updatedAt"`
+	CreatedAt        time.Time   `json:"created_at"`
+	UpdatedAt        time.Time   `json:"updated_at"`
 	User             *User       `json:"user,omitempty"`
 	Badge            *SkillBadge `gorm:"foreignKey:BadgeID"`
 
@@ -143,6 +143,8 @@ func AssignBadge(db *gorm.DB, userID string, assessmentID uint) (*UserBadge, err
 		UserID:           userID,
 		BadgeID:          badge.ID,
 		UserAssessmentID: assessmentID,
+		CreatedAt:        time.Now(),
+		UpdatedAt:        time.Now(),
 	}
 	err = db.Create(&newUserBadge).Error
 

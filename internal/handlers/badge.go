@@ -161,7 +161,9 @@ func AssignBadgeHandler(c *gin.Context) {
 		return
 	}
 
-	userBadge, err := models.AssignBadge(db.DB, body.UserID, body.AssessmentID)
+	userID := c.GetString("user_id")
+
+	userBadge, err := models.AssignBadge(db.DB, userID, body.AssessmentID)
 
 	if err != nil {
 		response.Error(c, http.StatusInternalServerError, "Unable to assign badge", map[string]interface{}{
