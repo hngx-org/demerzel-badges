@@ -53,7 +53,7 @@ func CreateBadgeHandler(c *gin.Context) {
 		return
 	}
 
-	badgeName := models.Badge(strings.ToLower(input.Name))
+	badgeName := models.Badge(strings.ToTitle(input.Name))
 	if !badgeName.IsValid() {
 		response.Error(c, http.StatusUnprocessableEntity, "invalid input", map[string]interface{}{
 			"name": "invalid badge name",
