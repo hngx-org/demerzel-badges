@@ -92,7 +92,7 @@ func CreateBadgeHandler(c *gin.Context) {
 }
 
 func GetBadgesForUserHandler(c *gin.Context) {
-	
+
 	badgeName := c.Query("badge")
 
 	userID := c.GetString("user_id")
@@ -138,15 +138,14 @@ func AssignBadgeHandler(c *gin.Context) {
 	}
 
 	type SendNewBadgeEmail struct {
-		Recipient string `json:"recipient"`
-		Name string `json:"name"`
-		Skill string `json:"skill"`
-		BadgeName string `json:"badge_name"`
+		Recipient       string `json:"recipient"`
+		Name            string `json:"name"`
+		Skill           string `json:"skill"`
+		BadgeName       string `json:"badge_name"`
 		UserProfileLink string `json:"user_profile_link"`
 	}
 
 	var body AssignBadgeReq
-	
 
 	if err := c.ShouldBindJSON(&body); err != nil {
 		response.Error(c, http.StatusBadRequest, fmt.Sprintf("Invalid request body: %s", err.Error()), map[string]interface{}{})
@@ -173,10 +172,10 @@ func AssignBadgeHandler(c *gin.Context) {
 	}
 
 	emailReq := SendNewBadgeEmail{
-		Recipient: userBadge.User.Email,
-		Name: userBadge.User.FirstName,
-		Skill: string(userBadge.Badge.Name),
-		BadgeName: userBadge.Skill.CategoryName,
+		Recipient:       userBadge.User.Email,
+		Name:            userBadge.User.FirstName,
+		Skill:           userBadge.Badge.Skill.CategoryName,
+		BadgeName:       string(userBadge.Badge.Name),
 		UserProfileLink: "https://example.com",
 	}
 
@@ -184,7 +183,6 @@ func AssignBadgeHandler(c *gin.Context) {
 	client.SetHeader("Content-Type", "application/json")
 	client.SetBody(&emailReq)
 	res, err := client.Post("https://team-titan.mrprotocoll.me/api/messaging/assessment/badge")
-
 
 	if err != nil {
 		response.Error(c, 500, "Something went wrong", err)

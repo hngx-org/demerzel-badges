@@ -154,6 +154,7 @@ func AssignBadge(db *gorm.DB, userID string, assessmentID uint) (*UserBadge, err
 		Preload("User").
 		Preload("UserAssessment.Assessment").
 		Preload("Badge").
+		Preload("Badge.Skill").
 		Where(&UserBadge{ID: newUserBadge.ID}).First(&newUserBadge).Error
 
 	return &newUserBadge, err
