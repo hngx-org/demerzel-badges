@@ -1,0 +1,59 @@
+name: Badges Deployment
+
+on:
+  push:
+    branches:
+      - main
+  # pull_request:
+  #   branches:
+  #     - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.19
+
+      - name: build app
+        run: go build main.go
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.19
+
+      - name: pull changes and build
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.DEPLOY_HOST_STAGING }}
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSWORD }}
+          port: ${{ secrets.PORT }}
+          script: |
+            cd /home/devops/team_demerzel/backend
+            git fetch origin
+            git pull origin main
+            /usr/local/go/bin/go build main.go
+
+      - name: restart server
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.DEPLOY_HOST_STAGING }}
+          username: ${{ secrets.USERNAME2 }}
+          password: ${{ secrets.PASSWORD2 }}
+          port: ${{ secrets.PORT }}
+          script: |
+            systemctl restart demerzel_backend

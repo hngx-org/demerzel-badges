@@ -35,38 +35,32 @@ func GetValidBadgeName(badgeName string) (Badge, error) {
 }
 
 type SkillBadge struct {
-	ID        uint      `json:"id" gorm:"primaryKey"`
-	SkillID   uint      `json:"skill_id"`
-	Name      Badge     `json:"name"`
-	MinScore  float64   `json:"min_score"`
-	MaxScore  float64   `json:"max_score"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	ID       uint    `json:"id" gorm:"primaryKey"`
+	SkillID  uint    `json:"skill_id"`
+	Name     Badge   `json:"name"`
+	MinScore float64 `json:"min_score"`
+	MaxScore float64 `json:"max_score"`
 
 	Skill *Skill `json:"Skill,omitempty"`
 }
 
 type SkillBadgeJson struct {
-	ID        uint      `json:"id" gorm:"primaryKey"`
-	SkillID   uint      `json:"skill_id"`
-	Name      string    `json:"name"`
-	MinScore  float64   `json:"min_score"`
-	MaxScore  float64   `json:"max_score"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-	Skill     *Skill    `json:"Skill,omitempty"`
+	ID       uint    `json:"id" gorm:"primaryKey"`
+	SkillID  uint    `json:"skill_id"`
+	Name     string  `json:"name"`
+	MinScore float64 `json:"min_score"`
+	MaxScore float64 `json:"max_score"`
+	Skill    *Skill  `json:"Skill,omitempty"`
 }
 
 func (sB SkillBadge) MarshalJSON() ([]byte, error) {
 	jsonData := SkillBadgeJson{
-		ID:        sB.ID,
-		SkillID:   sB.SkillID,
-		Name:      strings.ToLower(string(sB.Name)),
-		MinScore:  sB.MinScore,
-		MaxScore:  sB.MaxScore,
-		CreatedAt: sB.CreatedAt,
-		UpdatedAt: sB.UpdatedAt,
-		Skill:     sB.Skill,
+		ID:       sB.ID,
+		SkillID:  sB.SkillID,
+		Name:     strings.ToLower(string(sB.Name)),
+		MinScore: sB.MinScore,
+		MaxScore: sB.MaxScore,
+		Skill:    sB.Skill,
 	}
 
 	return json.Marshal(jsonData)
@@ -78,14 +72,12 @@ func (sB SkillBadge) TableName() string {
 
 type UserBadge struct {
 	ID               uint        `json:"id" gorm:"primaryKey"`
-	SkillID          uint        `json:"skill_id"`
 	UserID           string      `json:"user_id" gorm:"varchar(255)"`
 	BadgeID          uint        `json:"badge_id"`
 	UserAssessmentID uint        `json:"user_assessment_id"`
 	CreatedAt        time.Time   `json:"created_at"`
 	UpdatedAt        time.Time   `json:"updated_at"`
 	User             *User       `json:"user,omitempty"`
-	Skill            *Skill      `json:"skill,omitempty"`
 	Badge            *SkillBadge `gorm:"foreignKey:BadgeID"`
 
 	UserAssessment *UserAssessment `json:"UserAssessment"`
@@ -131,7 +123,6 @@ func AssignBadge(db *gorm.DB, userID string, assessmentID uint) (*UserBadge, err
 		return nil, err
 	}
 
-	fmt.Println(assessmentTaken.AssessmentID)
 	err = db.Where("skill_id = ? AND ? BETWEEN min_score AND max_score", assessmentTaken.Assessment.SkillID, assessmentTaken.Score).First(&badge).Error
 
 	if err != nil {
@@ -145,8 +136,9 @@ func AssignBadge(db *gorm.DB, userID string, assessmentID uint) (*UserBadge, err
 	newUserBadge := UserBadge{
 		UserID:           userID,
 		BadgeID:          badge.ID,
-		SkillID:          badge.SkillID,
 		UserAssessmentID: assessmentID,
+		CreatedAt:        time.Now(),
+		UpdatedAt:        time.Now(),
 	}
 	err = db.Create(&newUserBadge).Error
 
@@ -158,7 +150,7 @@ func AssignBadge(db *gorm.DB, userID string, assessmentID uint) (*UserBadge, err
 		Preload("User").
 		Preload("UserAssessment.Assessment").
 		Preload("Badge").
-		Preload("Skill").
+		Preload("Badge.Skill").
 		Where(&UserBadge{ID: newUserBadge.ID}).First(&newUserBadge).Error
 
 	return &newUserBadge, err
