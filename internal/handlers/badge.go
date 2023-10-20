@@ -5,10 +5,11 @@ import (
 	"demerzel-badges/internal/models"
 	"demerzel-badges/pkg/response"
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/go-resty/resty/v2"
 	"net/http"
 	"strconv"
+
+	"github.com/gin-gonic/gin"
+	"github.com/go-resty/resty/v2"
 )
 
 func CreateBadgeHandler(c *gin.Context) {
@@ -119,16 +120,19 @@ func GetUserBadgeByIDHandler(c *gin.Context) {
 		response.Error(c, http.StatusBadRequest, "Invalid badgeID", map[string]interface{}{})
 		return
 	}
-	badge, err := models.GetUserBadgeByID(db.DB, uint(badgeID))
+
+	userId := c.GetString("user_id")
+	badge, err := models.GetUserBadgeByID(db.DB, uint(badgeID), userId)
 	if err != nil {
-		response.Error(c, http.StatusNotFound, "Badge Not found", map[string]string{})
+		response.Error(c, http.StatusNotFound, "Badge Not found", map[string]interface{}{
+			"error": err.Error(),
+		})
 		return
 	}
 
 	response.Success(c, http.StatusOK, "User Badge", map[string]interface{}{
 		"badge": badge,
 	})
-	return
 }
 
 func AssignBadgeHandler(c *gin.Context) {
