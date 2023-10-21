@@ -25,13 +25,13 @@ func GetUserBadgeBySkill(c *gin.Context) {
 		return
 	}
 
-	var skillIDs []uint
+	var skillBadgeIDs []uint
 	for _, badge := range skillBadges {
-		skillIDs = append(skillIDs, badge.ID)
+		skillBadgeIDs = append(skillBadgeIDs, badge.ID)
 	}
 
 	result = db.DB.Where("user_id=?", userId).
-		Where("skill_id IN ?", skillIDs).
+		Where("badge_id IN ?", skillBadgeIDs).
 		Find(&userbadge)
 
 	if result.Error != nil {
