@@ -9,19 +9,29 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func GetUserBadgeHandler(c *gin.Context) {
+func GetUserBadgeBySkill(c *gin.Context) {
 	skillId := c.Param("skillId")
 	userId := c.GetString("user_id")
 
-
 	var userbadge []models.UserBadge
+	var skillBadges []models.SkillBadge
 
-	result := db.DB.Where("user_id=? AND skill_id=?", userId, skillId).
-		Preload("User").
-		Preload("Badge").
-		Preload("Skill").
-		Preload("Assessment").
-		Preload("Assessment.Skill").
+	result := db.DB.Where("id = ?", skillId).Find(&skillBadges)
+	if result.Error != nil {
+		response.Error(c, http.StatusInternalServerError, "Unable to get badge", map[string]interface{}{
+			"error": result.Error,
+		})
+
+		return
+	}
+
+	var skillIDs []uint
+	for _, badge := range skillBadges {
+		skillIDs = append(skillIDs, badge.ID)
+	}
+
+	result = db.DB.Where("user_id=?", userId).
+		Where("skill_id IN ?", skillIDs).
 		Find(&userbadge)
 
 	if result.Error != nil {
