@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-resty/resty/v2"
@@ -53,7 +52,7 @@ func CreateBadgeHandler(c *gin.Context) {
 		return
 	}
 
-	badgeName := models.Badge(strings.ToLower(input.Name))
+	badgeName, _ := models.GetValidBadgeName(input.Name)
 	if !badgeName.IsValid() {
 		response.Error(c, http.StatusUnprocessableEntity, "invalid input", map[string]interface{}{
 			"name": "invalid badge name",
@@ -92,8 +91,13 @@ func CreateBadgeHandler(c *gin.Context) {
 }
 
 func GetBadgesForUserHandler(c *gin.Context) {
-	userID := c.Param("user_id")
+
 	badgeName := c.Query("badge")
+	if badgeName == "" {
+		badgeName = c.Query("badges")
+	}
+
+	userID := c.GetString("user_id")
 
 	badges, err := models.GetUserBadges(db.DB, userID, badgeName)
 
@@ -116,16 +120,19 @@ func GetUserBadgeByIDHandler(c *gin.Context) {
 		response.Error(c, http.StatusBadRequest, "Invalid badgeID", map[string]interface{}{})
 		return
 	}
-	badge, err := models.GetUserBadgeByID(db.DB, uint(badgeID))
+
+	userId := c.GetString("user_id")
+	badge, err := models.GetUserBadgeByID(db.DB, uint(badgeID), userId)
 	if err != nil {
-		response.Error(c, http.StatusNotFound, "Badge Not found", map[string]string{})
+		response.Error(c, http.StatusNotFound, "Badge Not found", map[string]interface{}{
+			"error": err.Error(),
+		})
 		return
 	}
 
 	response.Success(c, http.StatusOK, "User Badge", map[string]interface{}{
 		"badge": badge,
 	})
-	return
 }
 
 func AssignBadgeHandler(c *gin.Context) {
@@ -136,10 +143,10 @@ func AssignBadgeHandler(c *gin.Context) {
 	}
 
 	type SendNewBadgeEmail struct {
-		Recipient string `json:"recipient"`
-		Name string `json:"name"`
-		Skill string `json:"skill"`
-		BadgeName string `json:"badge_name"`
+		Recipient       string `json:"recipient"`
+		Name            string `json:"name"`
+		Skill           string `json:"skill"`
+		BadgeName       string `json:"badge_name"`
 		UserProfileLink string `json:"user_profile_link"`
 	}
 
@@ -159,7 +166,9 @@ func AssignBadgeHandler(c *gin.Context) {
 		return
 	}
 
-	userBadge, err := models.AssignBadge(db.DB, body.UserID, body.AssessmentID)
+	userID := c.GetString("user_id")
+
+	userBadge, err := models.AssignBadge(db.DB, userID, body.AssessmentID)
 
 	if err != nil {
 		response.Error(c, http.StatusInternalServerError, "Unable to assign badge", map[string]interface{}{
@@ -170,19 +179,17 @@ func AssignBadgeHandler(c *gin.Context) {
 	}
 
 	emailReq := SendNewBadgeEmail{
-		Recipient: userBadge.User.Email,
-		Name: userBadge.User.FirstName,
-		Skill: string(userBadge.Badge.Name),
-		BadgeName: userBadge.Skill.CategoryName,
+		Recipient:       userBadge.User.Email,
+		Name:            userBadge.User.FirstName,
+		Skill:           userBadge.Badge.Skill.CategoryName,
+		BadgeName:       string(userBadge.Badge.Name),
 		UserProfileLink: "https://example.com",
 	}
 
 	client := resty.New().R()
 	client.SetHeader("Content-Type", "application/json")
 	client.SetBody(&emailReq)
-	fmt.Println(emailReq)
 	res, err := client.Post("https://team-titan.mrprotocoll.me/api/messaging/assessment/badge")
-
 
 	if err != nil {
 		response.Error(c, 500, "Something went wrong", err)
@@ -190,7 +197,6 @@ func AssignBadgeHandler(c *gin.Context) {
 	}
 
 	if res.StatusCode() != 200 {
-		fmt.Println(res.StatusCode())
 		response.Success(c, http.StatusCreated, "Badge Assigned Successfully, Email not Sent", map[string]interface{}{
 			"badge": userBadge,
 		})
