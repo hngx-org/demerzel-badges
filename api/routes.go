@@ -34,7 +34,7 @@ func SetupRoutes() *gin.Engine {
 	apiRoutes.POST("/badges", handlers.CreateBadgeHandler)
 	apiRoutes.GET("/user/badges", middleware.CanViewBadge(), handlers.GetBadgesForUserHandler)
 	apiRoutes.POST("/user/badges", middleware.CanAssignBadge(), handlers.AssignBadgeHandler)
-	apiRoutes.GET("/user/badges/skill/:skillId", middleware.CanViewBadge(), handlers.GetUserBadgeHandler)
+	apiRoutes.GET("/user/badges/skill/:skillId", middleware.CanViewBadge(), handlers.GetUserBadgeBySkill)
 	apiRoutes.GET("/badges/:badge_id", middleware.CanViewBadge(), handlers.GetUserBadgeByIDHandler)
 
 	return r
