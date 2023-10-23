@@ -189,7 +189,7 @@ func AssignBadgeHandler(c *gin.Context) {
 	client := resty.New().R()
 	client.SetHeader("Content-Type", "application/json")
 	client.SetBody(&emailReq)
-	res, err := client.Post("https://team-titan.mrprotocoll.me/api/messaging/assessment/badge")
+	res, err := client.Post("https://team-titan.mrprotocoll.me/api/v1/messaging/assessment/badge")
 
 	if err != nil {
 		response.Error(c, 500, "Something went wrong", err)
